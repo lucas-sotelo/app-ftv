@@ -1,0 +1,15 @@
+# Dependências e Builds
+node_modules/
+.next/
+dist/
+build/
+coverage/
+
+# Arquivos de Seed e Dados Legados Pesados
+data/futevolei-legacy-seed.json
+
+# Arquivos de Lock e Logs
+package-lock.json
+pnpm-lock.yaml
+yarn.lock
+*.log

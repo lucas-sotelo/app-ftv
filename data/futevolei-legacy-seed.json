@@ -1,0 +1,200 @@
+{
+  "group_name": "Futevôlei 2026",
+  "matches": [
+    {
+      "played_at": "2026-07-05",
+      "winner": ["Ronaldo", "Léo"],
+      "loser": ["Sotelo", "Alex"]
+    },
+    {
+      "played_at": "2026-07-05",
+      "winner": ["Sotelo", "Léo"],
+      "loser": ["Ronaldo", "Alex"]
+    },
+    {
+      "played_at": "2026-07-05",
+      "winner": ["Sotelo", "Ronaldo"],
+      "loser": ["Luis", "Léo"]
+    },
+    {
+      "played_at": "2026-07-05",
+      "winner": ["Daniel", "Sotelo"],
+      "loser": ["Léo", "Alex"]
+    },
+    {
+      "played_at": "2026-07-05",
+      "winner": ["Luis", "Alex"],
+      "loser": ["Daniel", "Ronaldo"]
+    },
+    {
+      "played_at": "2026-07-05",
+      "winner": ["Luis", "Alex"],
+      "loser": ["Daniel", "Ronaldo"]
+    },
+    {
+      "played_at": "2026-07-14",
+      "winner": ["Luis", "Alex"],
+      "loser": ["Daniel", "Ronaldo"]
+    },
+    {
+      "played_at": "2026-07-14",
+      "winner": ["Luis", "Alex"],
+      "loser": ["Daniel", "Ronaldo"]
+    },
+    {
+      "played_at": "2026-07-14",
+      "winner": ["Ronaldo", "Alex"],
+      "loser": ["Luis", "Léo"]
+    },
+    {
+      "played_at": "2026-07-14",
+      "winner": ["Ronaldo", "Alex"],
+      "loser": ["Luis", "Léo"]
+    },
+    {
+      "played_at": "2026-07-14",
+      "winner": ["Ronaldo", "Alex"],
+      "loser": ["Luis", "Léo"]
+    },
+    {
+      "played_at": "2026-07-14",
+      "winner": ["Luis", "Léo"],
+      "loser": ["Ronaldo", "Alex"]
+    },
+    {
+      "played_at": "2026-07-18",
+      "winner": ["Alex", "Arthur"],
+      "loser": ["Daniel", "Léo"]
+    },
+    {
+      "played_at": "2026-07-18",
+      "winner": ["Luis", "Arthur"],
+      "loser": ["Ronaldo", "Léo"]
+    },
+    {
+      "played_at": "2026-07-18",
+      "winner": ["Léo", "Arthur"],
+      "loser": ["Daniel", "Ronaldo"]
+    },
+    {
+      "played_at": "2026-07-18",
+      "winner": ["Léo", "Alex"],
+      "loser": ["Daniel", "Arthur"]
+    },
+    {
+      "played_at": "2026-07-18",
+      "winner": ["Luis", "Alex"],
+      "loser": ["Daniel", "Arthur"]
+    },
+    {
+      "played_at": "2026-07-20",
+      "winner": ["Léo", "Alex"],
+      "loser": ["Luis", "Ronaldo"]
+    },
+    {
+      "played_at": "2026-07-20",
+      "winner": ["Léo", "Alex"],
+      "loser": ["Luis", "Ronaldo"]
+    },
+    {
+      "played_at": "2026-07-20",
+      "winner": ["Luis", "Ronaldo"],
+      "loser": ["Léo", "Alex"]
+    },
+    {
+      "played_at": "2026-07-20",
+      "winner": ["Luis", "Ronaldo"],
+      "loser": ["Léo", "Alex"]
+    },
+    {
+      "played_at": "2026-07-20",
+      "winner": ["Luis", "Léo"],
+      "loser": ["Daniel", "Ronaldo"]
+    },
+    {
+      "played_at": "2026-07-20",
+      "winner": ["Léo", "Alex"],
+      "loser": ["Daniel", "Ronaldo"]
+    },
+    {
+      "played_at": "2026-07-20",
+      "winner": ["Léo", "Alex"],
+      "loser": ["Luis", "Daniel"]
+    },
+    {
+      "played_at": "2026-07-20",
+      "winner": ["Luis", "Alex"],
+      "loser": ["Daniel", "Léo"]
+    },
+    {
+      "played_at": "2026-07-22",
+      "winner": ["Ronaldo", "Léo"],
+      "loser": ["Luis", "Alex"]
+    },
+    {
+      "played_at": "2026-07-22",
+      "winner": ["Daniel", "Léo"],
+      "loser": ["Ronaldo", "Alex"]
+    },
+    {
+      "played_at": "2026-07-22",
+      "winner": ["Daniel", "Léo"],
+      "loser": ["Ronaldo", "Alex"]
+    },
+    {
+      "played_at": "2026-07-22",
+      "winner": ["Daniel", "Léo"],
+      "loser": ["Ronaldo", "Alex"]
+    },
+    {
+      "played_at": "2026-07-22",
+      "winner": ["Luis", "Daniel"],
+      "loser": ["Ronaldo", "Alex"]
+    },
+    {
+      "played_at": "2026-07-22",
+      "winner": ["Ronaldo", "Alex"],
+      "loser": ["Luis", "Daniel"]
+    },
+    {
+      "played_at": "2026-07-22",
+      "winner": ["Luis", "Daniel"],
+      "loser": ["Ronaldo", "Léo"]
+    },
+    {
+      "played_at": "2026-07-27",
+      "winner": ["Daniel", "Alex"],
+      "loser": ["Ronaldo", "Léo"]
+    },
+    {
+      "played_at": "2026-07-27",
+      "winner": ["Daniel", "Alex"],
+      "loser": ["Ronaldo", "Léo"]
+    },
+    {
+      "played_at": "2026-07-27",
+      "winner": ["Luis", "Ronaldo"],
+      "loser": ["Daniel", "Alex"]
+    },
+    {
+      "played_at": "2026-07-27",
+      "winner": ["Luis", "Ronaldo"],
+      "loser": ["Daniel", "Alex"]
+    },
+    {
+      "played_at": "2026-07-27",
+      "winner": ["Daniel", "Alex"],
+      "loser": ["Luis", "Ronaldo"]
+    },
+    {
+      "played_at": "2026-07-27",
+      "winner": ["Luis", "Ronaldo"],
+      "loser": ["Daniel", "Alex"]
+    },
+    {
+      "played_at": "2026-07-27",
+      "winner": ["Luis", "Ronaldo"],
+      "loser": ["Daniel", "Alex"]
+    }
+  ]
+}
