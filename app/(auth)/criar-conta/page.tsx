@@ -7,7 +7,7 @@ export const metadata: Metadata = { title: "Criar conta" };
 
 export default function SignUpPage() {
   return (
-    <Card>
+    <Card className="shadow-lg">
       <CardContent className="pt-4">
         <SignUpForm />
         <p className="text-muted-foreground mt-6 text-center text-sm">

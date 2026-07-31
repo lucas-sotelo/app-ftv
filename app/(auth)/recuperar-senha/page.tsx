@@ -25,7 +25,7 @@ export default function ForgotPasswordPage() {
   });
 
   return (
-    <Card>
+    <Card className="shadow-lg">
       <CardContent className="pt-4">
         {sent ? (
           <div className="flex flex-col items-center gap-3 py-4 text-center">

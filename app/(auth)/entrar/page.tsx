@@ -14,7 +14,7 @@ export default async function SignInPage({
   const { proximo } = await searchParams;
 
   return (
-    <Card>
+    <Card className="shadow-lg">
       <CardContent className="pt-4">
         <Suspense fallback={null}>
           <SignInForm nextPath={proximo ?? null} />

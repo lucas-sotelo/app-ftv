@@ -72,7 +72,11 @@ export default async function proxy(request: NextRequest) {
 
 export const config = {
   matcher: [
-    // Tudo, menos assets estáticos, ícones e o service worker.
-    "/((?!_next/static|_next/image|favicon.ico|sw.js|manifest.webmanifest|icons/|offline).*)",
+    // Tudo, menos assets estáticos, imagens públicas, ícones e o service
+    // worker. `images/` faltava aqui: sem ela, o banner da tela de login
+    // (sempre pedido por um visitante ainda anônimo) caía no redirect para
+    // /entrar, e o próprio next/image quebrava ao tentar otimizar um HTML
+    // de redirecionamento como se fosse imagem.
+    "/((?!_next/static|_next/image|favicon.ico|sw.js|manifest.webmanifest|icons/|images/|offline).*)",
   ],
 };

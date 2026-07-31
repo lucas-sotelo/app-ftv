@@ -23,7 +23,7 @@ export default function NewPasswordPage() {
   });
 
   return (
-    <Card>
+    <Card className="shadow-lg">
       <CardContent className="pt-4">
         <form
           className="flex flex-col gap-4"
