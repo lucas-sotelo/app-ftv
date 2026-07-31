@@ -170,11 +170,7 @@ export function MatchForm({
           <CardContent className="flex flex-col gap-4 pt-4">
             <div>
               <Label htmlFor="teamAScore">Placar (opcional)</Label>
-              <p className="text-muted-foreground mt-0.5 text-xs">
-                A planilha antiga não guardava pontos. Se você não informar, escolha o vencedor
-                abaixo.
-              </p>
-              <div className="mt-2 flex items-center gap-2">
+              <div className="mt-1 flex items-center gap-2">
                 <Input
                   id="teamAScore"
                   type="number"
