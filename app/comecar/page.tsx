@@ -2,6 +2,7 @@ import { Trophy } from "lucide-react";
 import type { Metadata } from "next";
 import Link from "next/link";
 import { redirect } from "next/navigation";
+import { HomeUserMenu } from "@/components/home/home-user-menu";
 import { PlayerAvatar } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
 import { listUserGroups } from "@/lib/data/groups";
@@ -26,27 +27,35 @@ export default async function HomePage({
   const { convite } = await searchParams;
 
   const [{ data: profile }, groups] = await Promise.all([
-    supabase.from("profiles").select("display_name").eq("id", user.id).maybeSingle(),
+    supabase.from("profiles").select("display_name, avatar_url").eq("id", user.id).maybeSingle(),
     listUserGroups(supabase),
   ]);
 
   const greetingName = profile?.display_name || user.email?.split("@")[0] || "atleta";
+  const profileHref = groups.length > 0 ? `/${groups[0].group.slug}/perfil` : null;
 
   return (
     <div className="bg-stone-50 dark:bg-background flex flex-1 flex-col">
+      <header className="bg-background/95 sticky top-0 z-30 border-b backdrop-blur">
+        <div className="mx-auto flex w-full max-w-3xl items-center justify-between gap-3 px-4 py-3">
+          <p className="min-w-0 truncate text-sm font-medium">
+            Olá, <span className="font-semibold">{greetingName}</span>
+          </p>
+          <HomeUserMenu
+            displayName={greetingName}
+            avatarUrl={profile?.avatar_url ?? null}
+            profileHref={profileHref}
+          />
+        </div>
+      </header>
+
       <main className="mx-auto flex w-full max-w-3xl flex-1 flex-col gap-6 px-4 py-6">
         {/* eslint-disable-next-line @next/next/no-img-element -- banner estático, sem otimização necessária */}
         <img
           src="/images/banner-home.jpg"
           alt="Pôr do sol em uma quadra de areia, com rede de futevôlei/beach tênis"
-          className="aspect-video w-full rounded-[var(--radius-app)] object-cover shadow-sm"
+          className="border-border/50 aspect-video w-full rounded-[var(--radius-app)] border object-cover shadow-sm"
         />
-
-        <h1 className="text-2xl leading-tight font-bold tracking-tight">
-          Vamos pra resenha, {greetingName}!
-        </h1>
-
-        <hr className="mt-8 mb-6 border-gray-200 dark:border-white/10" />
 
         <section className="flex flex-col gap-3">
           <h2 className="text-lg font-bold">Seus grupos</h2>
@@ -62,7 +71,7 @@ export default async function HomePage({
                 <li key={group.id}>
                   <Link
                     href={`/${group.slug}`}
-                    className="flex items-center gap-3 rounded-xl border border-gray-100 bg-white p-3 shadow-sm transition-colors hover:bg-gray-50 dark:border-white/10 dark:bg-card dark:hover:bg-muted"
+                    className="border-border/50 bg-card hover:bg-accent/50 flex items-center gap-3 rounded-xl border p-3.5 shadow-sm transition-colors"
                   >
                     <PlayerAvatar name={group.name} seed={group.id} imageUrl={group.avatar_url} />
                     <span className="min-w-0 flex-1">

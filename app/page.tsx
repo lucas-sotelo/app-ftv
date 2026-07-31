@@ -1,11 +1,11 @@
 import { redirect } from "next/navigation";
-import { listUserGroups } from "@/lib/data/groups";
 import { createClient } from "@/lib/supabase/server";
 
 export const dynamic = "force-dynamic";
 
 /**
- * Porta de entrada: manda para o grupo do usuário ou para o onboarding.
+ * Porta de entrada: nunca escolhe um grupo por conta própria — quem decide
+ * qual grupo abrir é o usuário, a partir do hub em /comecar.
  */
 export default async function HomePage() {
   const supabase = await createClient();
@@ -15,8 +15,5 @@ export default async function HomePage() {
 
   if (!user) redirect("/entrar");
 
-  const groups = await listUserGroups(supabase);
-  if (groups.length === 0) redirect("/comecar");
-
-  redirect(`/${groups[0].group.slug}`);
+  redirect("/comecar");
 }
