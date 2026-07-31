@@ -2,6 +2,7 @@ import type { Metadata, Viewport } from "next";
 import { Geist, Geist_Mono } from "next/font/google";
 import { ThemeProvider } from "next-themes";
 import { Toaster } from "sonner";
+import { PwaUpdater } from "@/components/pwa/pwa-updater";
 import { ServiceWorkerProvider } from "@/components/pwa/service-worker-provider";
 import "./globals.css";
 
@@ -25,9 +26,9 @@ export const metadata: Metadata = {
   icons: {
     icon: [
       { url: "/icons/icon-64.png", sizes: "64x64", type: "image/png" },
-      { url: "/icons/icon-192.png", sizes: "192x192", type: "image/png" },
+      { url: "/images/icon-192x192.png", sizes: "192x192", type: "image/png" },
     ],
-    apple: [{ url: "/icons/apple-touch-icon.png", sizes: "180x180" }],
+    apple: [{ url: "/images/icon-192x192.png", sizes: "192x192" }],
   },
   formatDetection: { telephone: false },
 };
@@ -53,6 +54,7 @@ export default function RootLayout({ children }: Readonly<{ children: React.Reac
           disableTransitionOnChange
         >
           <ServiceWorkerProvider>{children}</ServiceWorkerProvider>
+          <PwaUpdater />
           <Toaster position="top-center" richColors closeButton toastOptions={{ duration: 4000 }} />
         </ThemeProvider>
       </body>

@@ -19,13 +19,17 @@ import {
 import { failure, isNextControlFlowError, success, type ActionResult } from "./result";
 
 /**
- * Só aceita caminho interno. Impede que `?proximo=https://site-malicioso`
- * vire um open redirect depois do login.
+ * Pós-login SEMPRE cai no hub /comecar — nunca direto numa rota de grupo.
+ * O único "próximo passo" honrado é o próprio /comecar (com query string,
+ * ex.: `?convite=CODIGO` do fluxo de convite); qualquer outro valor — seja
+ * uma rota de grupo guardada pelo middleware antes do login, seja uma
+ * URL absoluta (`?proximo=https://site-malicioso`, um open redirect) — é
+ * ignorado.
  */
 function safeRedirectPath(value: string | null | undefined): string {
-  if (!value) return "/";
-  if (!value.startsWith("/") || value.startsWith("//")) return "/";
-  return value;
+  if (!value) return "/comecar";
+  if (value === "/comecar" || value.startsWith("/comecar?")) return value;
+  return "/comecar";
 }
 
 export async function signInAction(

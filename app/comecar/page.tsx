@@ -50,7 +50,8 @@ export default async function HomePage({
       <header className="bg-background/95 sticky top-0 z-30 border-b backdrop-blur">
         <div className="mx-auto flex w-full max-w-3xl items-center justify-between gap-3 px-4 py-3">
           <p className="min-w-0 truncate text-sm font-medium">
-            Olá, <span className="font-semibold">{greetingName}</span>
+            Bora pra areia, <span className="font-semibold">{greetingName}</span>? Será que hoje
+            vai ser dia ou noite?
           </p>
           <HomeUserMenu
             displayName={greetingName}
@@ -91,9 +92,6 @@ export default async function HomePage({
                       <span className="flex items-center gap-1.5">
                         <Trophy className="text-court-600 size-3.5 shrink-0" aria-hidden />
                         <span className="block truncate text-sm font-semibold">{group.name}</span>
-                      </span>
-                      <span className="text-muted-foreground block truncate text-xs">
-                        {group.timezone.replace("America/", "").replace("_", " ")}
                       </span>
                     </span>
                     <Badge variant={role === "owner" ? "primary" : "default"}>

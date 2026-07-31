@@ -6,7 +6,14 @@
  *    imutáveis;
  *  - navegações: network-first com fallback para a última leitura e, em
  *    último caso, para /offline;
- *  - nada de POST/PUT/PATCH/DELETE passa por cache: escrever exige conexão.
+ *  - nada de POST/PUT/PATCH/DELETE passa por cache: escrever exige conexão;
+ *  - chamadas ao Supabase são cross-origin e nunca passam por este SW
+ *    (o listener de fetch já ignora tudo que não é `self.location.origin`).
+ *
+ * Atualização agressiva: skipWaiting + clients.claim fazem o SW novo assumir
+ * a página imediatamente, sem esperar todas as abas fecharem. Quem dispara o
+ * reload da tela é o componente PwaUpdater (components/pwa/pwa-updater.tsx),
+ * ao ouvir `controllerchange`.
  *
  * As páginas HTML são renderizadas com os dados do usuário logado. Elas ficam
  * num cache SEPARADO (ftv-pages), que é apagado quando a sessão muda ou o
@@ -22,11 +29,11 @@ const OFFLINE_URL = "/offline";
 const PRECACHE = [OFFLINE_URL, "/manifest.webmanifest", "/icons/icon-192.png", "/icons/icon-512.png"];
 
 self.addEventListener("install", (event) => {
-  event.waitUntil(
-    caches.open(STATIC_CACHE).then((cache) => cache.addAll(PRECACHE)),
-    // Sem skipWaiting automático: a nova versão só assume quando o usuário
-    // confirma o aviso "Nova versão disponível".
-  );
+  event.waitUntil(caches.open(STATIC_CACHE).then((cache) => cache.addAll(PRECACHE)));
+  // Assume a nova versão assim que instalar, sem esperar as abas antigas
+  // fecharem — a Vercel publica seguido e o cache não pode travar o usuário
+  // numa versão velha.
+  self.skipWaiting();
 });
 
 self.addEventListener("activate", (event) => {
@@ -43,9 +50,6 @@ self.addEventListener("activate", (event) => {
 
 self.addEventListener("message", (event) => {
   const type = event.data && event.data.type;
-  if (type === "SKIP_WAITING") {
-    self.skipWaiting();
-  }
   if (type === "CLEAR_PRIVATE_CACHE") {
     event.waitUntil(caches.delete(PAGES_CACHE));
   }
