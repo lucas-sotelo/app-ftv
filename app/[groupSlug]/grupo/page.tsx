@@ -20,10 +20,12 @@ export default async function GroupPage({ params }: { params: Promise<{ groupSlu
   const { groupSlug } = await params;
   const supabase = await createClient();
 
-  const {
-    data: { user },
-  } = await supabase.auth.getUser();
-  const context = await getGroupContext(supabase, groupSlug);
+  const [
+    {
+      data: { user },
+    },
+    context,
+  ] = await Promise.all([supabase.auth.getUser(), getGroupContext(supabase, groupSlug)]);
   if (!context || !user) notFound();
 
   const { group, role } = context;
@@ -99,8 +101,10 @@ export default async function GroupPage({ params }: { params: Promise<{ groupSlu
                 slug={groupSlug}
                 defaultValues={{
                   name: group.name,
-                  timezone: group.timezone,
-                  rankingMinGames: group.ranking_min_games,
+                  minAttendancePercent: group.min_attendance_percent,
+                  avatarUrl: group.avatar_url ?? "",
+                  firstPlaceEmoji: group.first_place_emoji ?? "",
+                  lastPlaceEmoji: group.last_place_emoji ?? "",
                 }}
               />
             </CardContent>

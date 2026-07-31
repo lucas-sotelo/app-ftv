@@ -32,14 +32,12 @@ export function FiltersBar({
   players,
   sessions,
   showMinGames = false,
-  groupMinGames = 1,
   showSearch = false,
 }: {
   filters: StatsFilters;
   players: FilterOption[];
   sessions: FilterOption[];
   showMinGames?: boolean;
-  groupMinGames?: number;
   showSearch?: boolean;
 }) {
   const router = useRouter();
@@ -131,6 +129,18 @@ export function FiltersBar({
             </Select>
           </div>
 
+          {filters.period === "day" ? (
+            <div className="flex flex-col gap-1.5">
+              <Label htmlFor="filtro-dia">Dia</Label>
+              <Input
+                id="filtro-dia"
+                type="date"
+                defaultValue={filters.from ?? ""}
+                onChange={(event) => update({ de: event.target.value || null, ate: null })}
+              />
+            </div>
+          ) : null}
+
           {filters.period === "custom" ? (
             <div className="grid grid-cols-2 gap-2">
               <div className="flex flex-col gap-1.5">
@@ -198,18 +208,14 @@ export function FiltersBar({
             <div className="flex flex-col gap-1.5">
               <Label htmlFor="filtro-min">Mínimo de jogos</Label>
               <Select
-                value={filters.minGames === null ? "oficial" : String(filters.minGames)}
-                onValueChange={(value) => update({ min: value === "oficial" ? null : value })}
+                value={String(filters.minGames ?? 1)}
+                onValueChange={(value) => update({ min: value === "1" ? null : value })}
               >
                 <SelectTrigger id="filtro-min">
                   <SelectValue />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="oficial">
-                    Ranking oficial (mínimo {groupMinGames} {groupMinGames === 1 ? "jogo" : "jogos"}
-                    )
-                  </SelectItem>
-                  <SelectItem value="1">Todos os jogadores</SelectItem>
+                  <SelectItem value="1">Todas as duplas</SelectItem>
                   <SelectItem value="3">A partir de 3 jogos</SelectItem>
                   <SelectItem value="5">A partir de 5 jogos</SelectItem>
                   <SelectItem value="10">A partir de 10 jogos</SelectItem>

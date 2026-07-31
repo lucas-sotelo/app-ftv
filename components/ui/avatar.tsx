@@ -23,17 +23,32 @@ export function PlayerAvatar({
   seed,
   size = "md",
   className,
+  imageUrl,
 }: {
   name: string;
   seed?: string;
   size?: "sm" | "md" | "lg";
   className?: string;
+  /** Foto/avatar já enviado (ex.: `groups.avatar_url`). Sem URL, cai nas iniciais. */
+  imageUrl?: string | null;
 }) {
   const sizes = {
     sm: "size-7 text-[0.65rem]",
     md: "size-9 text-xs",
     lg: "size-14 text-lg",
   } as const;
+
+  if (imageUrl) {
+    return (
+      // eslint-disable-next-line @next/next/no-img-element -- URL externa arbitrária, sem domínio fixo para next/image.
+      <img
+        src={imageUrl}
+        alt=""
+        aria-hidden
+        className={cn("inline-block shrink-0 rounded-full object-cover", sizes[size], className)}
+      />
+    );
+  }
 
   return (
     <span

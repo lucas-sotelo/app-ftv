@@ -82,7 +82,7 @@ describe("autorização e isolamento", () => {
 
     const { data: stats } = await outsider.client.rpc("stats_players", {
       p_group_id: groupA.id,
-      p_min_games: 1,
+      p_min_attendance_percent: 0,
     });
     expect(stats ?? []).toEqual([]);
   });
@@ -100,7 +100,7 @@ describe("autorização e isolamento", () => {
 
     const { data: stats } = await owner.client.rpc("stats_players", {
       p_group_id: groupA.id,
-      p_min_games: 1,
+      p_min_attendance_percent: 0,
     });
     expect(stats).toHaveLength(4);
     expect(stats!.find((row) => row.player_id === players[0].id)?.wins).toBe(1);
@@ -204,7 +204,7 @@ describe("autorização e isolamento", () => {
     // O histórico continua contando o jogador desativado.
     const { data: stats } = await owner.client.rpc("stats_players", {
       p_group_id: groupA.id,
-      p_min_games: 1,
+      p_min_attendance_percent: 0,
     });
     expect(stats!.find((row) => row.player_id === extra.id)?.games).toBe(1);
   });

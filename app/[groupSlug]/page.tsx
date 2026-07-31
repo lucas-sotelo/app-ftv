@@ -4,15 +4,17 @@ import Link from "next/link";
 import { notFound } from "next/navigation";
 import { MatchCard } from "@/components/matches/match-card";
 import { RankingRow } from "@/components/stats/ranking-row";
+import { PlayerAvatar } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
 import { EmptyState } from "@/components/ui/empty-state";
 import { StatTile } from "@/components/ui/stat-tile";
 import { getGroupContext } from "@/lib/data/groups";
 import { listMatches } from "@/lib/data/matches";
+import { listPlayers } from "@/lib/data/players";
 import { fetchGroupOverview, fetchPairStats, fetchPlayerStats } from "@/lib/data/stats";
 import { can } from "@/lib/permissions";
 import { createClient } from "@/lib/supabase/server";
-import { formatPlainDate } from "@/lib/utils/format";
+import { formatPlainDate, playerLabel } from "@/lib/utils/format";
 import { resolvePeriod } from "@/lib/utils/period";
 
 export const dynamic = "force-dynamic";
@@ -42,19 +44,26 @@ export default async function DashboardPage({
   const period = resolvePeriod("all", { timeZone: group.timezone });
   const statsQuery = { groupId: group.id, period, minGames: 1 };
 
-  const [overview, players, pairs, recent] = await Promise.all([
+  const [overview, players, pairs, recent, allPlayers] = await Promise.all([
     fetchGroupOverview(supabase, group.id),
     fetchPlayerStats(supabase, statsQuery),
     fetchPairStats(supabase, statsQuery),
     listMatches(supabase, group.id, { limit: 5 }),
+    listPlayers(supabase, group.id),
   ]);
 
   const leader = players[0];
+  const leaderNickname = allPlayers.find((p) => p.id === leader?.player_id)?.nickname;
   const bestPair = pairs[0];
   const isAdmin = can.manageMatches(role);
 
   return (
     <div className="flex flex-col gap-5">
+      <div className="flex items-center gap-3">
+        <PlayerAvatar name={group.name} seed={group.id} imageUrl={group.avatar_url} size="lg" />
+        <h1 className="min-w-0 truncate text-xl font-bold">{group.name}</h1>
+      </div>
+
       {isAdmin ? (
         <Button asChild size="lg" block className="shadow-sm">
           <Link href={`/${groupSlug}/partidas/nova`}>
@@ -99,14 +108,16 @@ export default async function DashboardPage({
           {leader ? (
             <RankingRow
               position={1}
-              title={leader.display_name}
+              title={playerLabel(leader.display_name, leaderNickname)}
               subtitle="Líder individual"
               href={`/${groupSlug}/jogadores/${leader.player_id}`}
               avatarSeed={leader.player_id}
+              avatarUrl={leader.avatar_url}
               games={leader.games}
               wins={leader.wins}
               losses={leader.losses}
               winRate={leader.win_rate}
+              emoji={group.first_place_emoji}
               highlight
             />
           ) : null}

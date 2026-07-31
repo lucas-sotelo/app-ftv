@@ -40,7 +40,11 @@ export interface Database {
           name: string;
           slug: string;
           timezone: string;
-          ranking_min_games: number;
+          city: string | null;
+          min_attendance_percent: number;
+          first_place_emoji: string | null;
+          last_place_emoji: string | null;
+          avatar_url: string | null;
           created_by: string;
           created_at: string;
           updated_at: string;
@@ -50,14 +54,22 @@ export interface Database {
           name: string;
           slug: string;
           timezone?: string;
-          ranking_min_games?: number;
+          city?: string | null;
+          min_attendance_percent?: number;
+          first_place_emoji?: string | null;
+          last_place_emoji?: string | null;
+          avatar_url?: string | null;
           created_by: string;
         };
         Update: {
           name?: string;
           slug?: string;
           timezone?: string;
-          ranking_min_games?: number;
+          city?: string | null;
+          min_attendance_percent?: number;
+          first_place_emoji?: string | null;
+          last_place_emoji?: string | null;
+          avatar_url?: string | null;
         };
         Relationships: [];
       };
@@ -93,6 +105,7 @@ export interface Database {
           linked_user_id: string | null;
           display_name: string;
           normalized_name: string;
+          nickname: string | null;
           avatar_url: string | null;
           active: boolean;
           is_guest: boolean;
@@ -107,6 +120,7 @@ export interface Database {
           linked_user_id?: string | null;
           display_name: string;
           normalized_name?: string;
+          nickname?: string | null;
           avatar_url?: string | null;
           active?: boolean;
           is_guest?: boolean;
@@ -116,6 +130,7 @@ export interface Database {
         Update: {
           linked_user_id?: string | null;
           display_name?: string;
+          nickname?: string | null;
           avatar_url?: string | null;
           active?: boolean;
           is_guest?: boolean;
@@ -339,6 +354,92 @@ export interface Database {
         };
         Relationships: [];
       };
+      v_daily_kings: {
+        Row: {
+          group_id: string;
+          player_id: string;
+          display_name: string;
+          avatar_url: string | null;
+          times_as_king: number;
+        };
+        Relationships: [];
+      };
+      v_daily_lanterns: {
+        Row: {
+          group_id: string;
+          player_id: string;
+          display_name: string;
+          avatar_url: string | null;
+          times_as_lantern: number;
+        };
+        Relationships: [];
+      };
+      v_player_streaks: {
+        Row: {
+          group_id: string;
+          player_id: string;
+          display_name: string;
+          avatar_url: string | null;
+          longest_win_streak: number;
+          longest_win_streak_start_at: string | null;
+          longest_win_streak_end_at: string | null;
+          longest_loss_streak: number;
+          longest_loss_streak_start_at: string | null;
+          longest_loss_streak_end_at: string | null;
+        };
+        Relationships: [];
+      };
+      v_pair_underdogs: {
+        Row: {
+          match_id: string;
+          group_id: string;
+          played_at: string;
+          winner_pair_key: string;
+          winner_player_ids: string[];
+          winner_player_names: string[];
+          winner_games: number;
+          winner_win_rate: number;
+          loser_pair_key: string;
+          loser_player_ids: string[];
+          loser_player_names: string[];
+          loser_games: number;
+          loser_win_rate: number;
+          win_rate_gap: number;
+        };
+        Relationships: [];
+      };
+      v_biggest_massacres: {
+        Row: {
+          group_id: string;
+          attacker_id: string;
+          attacker_name: string;
+          attacker_avatar_url: string | null;
+          victim_id: string;
+          victim_name: string;
+          victim_avatar_url: string | null;
+          games: number;
+          wins: number;
+          win_rate: number;
+        };
+        Relationships: [];
+      };
+      v_individual_underdogs: {
+        Row: {
+          match_id: string;
+          group_id: string;
+          played_at: string;
+          underdog_id: string;
+          underdog_name: string;
+          underdog_avatar_url: string | null;
+          favorite_id: string;
+          favorite_name: string;
+          favorite_avatar_url: string | null;
+          underdog_prior_wins: number;
+          favorite_prior_wins: number;
+          prior_win_gap: number;
+        };
+        Relationships: [];
+      };
     };
     Functions: {
       create_group_with_owner: {
@@ -346,7 +447,7 @@ export interface Database {
           p_name: string;
           p_slug?: string | null;
           p_timezone?: string;
-          p_ranking_min_games?: number;
+          p_city?: string | null;
         };
         Returns: Database["public"]["Tables"]["groups"]["Row"];
       };
@@ -392,6 +493,19 @@ export interface Database {
         };
         Returns: string;
       };
+      import_legacy_match: {
+        Args: {
+          p_group_id: string;
+          p_played_at: string;
+          p_team_a: string[];
+          p_team_b: string[];
+          p_winning_side: MatchSide;
+          p_created_by: string;
+          p_session_id?: string | null;
+          p_external_key?: string | null;
+        };
+        Returns: string;
+      };
       update_match: {
         Args: {
           p_match_id: string;
@@ -424,7 +538,7 @@ export interface Database {
           p_to?: string | null;
           p_session_id?: string | null;
           p_player_id?: string | null;
-          p_min_games?: number;
+          p_min_attendance_percent?: number;
         };
         Returns: {
           position: number;
@@ -438,6 +552,9 @@ export interface Database {
           wins: number;
           losses: number;
           win_rate: number;
+          total_group_matches: number;
+          attendance_percent: number;
+          meets_min_attendance: boolean;
         }[];
       };
       stats_pairs: {
@@ -546,3 +663,10 @@ export type PairStatRow = FnReturns<"stats_pairs">[number];
 export type PlayerH2HRow = FnReturns<"stats_player_head_to_head">[number];
 export type PairH2HRow = FnReturns<"stats_pair_head_to_head">[number];
 export type GroupOverviewRow = FnReturns<"group_overview">[number];
+
+export type DailyKingRow = Views<"v_daily_kings">;
+export type DailyLanternRow = Views<"v_daily_lanterns">;
+export type PlayerStreakRow = Views<"v_player_streaks">;
+export type PairUnderdogRow = Views<"v_pair_underdogs">;
+export type MassacreRow = Views<"v_biggest_massacres">;
+export type IndividualUnderdogRow = Views<"v_individual_underdogs">;

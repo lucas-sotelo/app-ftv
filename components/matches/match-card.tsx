@@ -1,6 +1,7 @@
 import { Trophy } from "lucide-react";
 import Link from "next/link";
 import { Badge } from "@/components/ui/badge";
+import { PlayerAvatar } from "@/components/ui/avatar";
 import type { MatchListItem, MatchPlayerRef } from "@/lib/data/types";
 import { formatTime } from "@/lib/utils/format";
 import { cn } from "@/lib/utils";
@@ -27,6 +28,18 @@ function TeamLine({
         className={cn("size-4 shrink-0", won ? "text-court-700 dark:text-court-400" : "opacity-0")}
         aria-hidden
       />
+      <div className="flex -space-x-2">
+        {players.map((player) => (
+          <PlayerAvatar
+            key={player.playerId}
+            name={player.displayName}
+            seed={player.playerId}
+            imageUrl={player.avatarUrl}
+            size="sm"
+            className="ring-card ring-2"
+          />
+        ))}
+      </div>
       <p className={cn("min-w-0 flex-1 text-sm", won ? "font-semibold" : "text-muted-foreground")}>
         {players.map((player, index) => (
           <span key={player.playerId}>

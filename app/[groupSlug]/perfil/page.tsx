@@ -13,22 +13,39 @@ export default async function ProfilePage({ params }: { params: Promise<{ groupS
   const { groupSlug } = await params;
   const supabase = await createClient();
 
-  const {
-    data: { user },
-  } = await supabase.auth.getUser();
-  const context = await getGroupContext(supabase, groupSlug);
+  const [
+    {
+      data: { user },
+    },
+    context,
+  ] = await Promise.all([supabase.auth.getUser(), getGroupContext(supabase, groupSlug)]);
   if (!context || !user) notFound();
 
-  const [{ data: profile }, groups] = await Promise.all([
-    supabase.from("profiles").select("display_name").eq("id", user.id).maybeSingle(),
+  const [{ data: profile }, rawGroups] = await Promise.all([
+    supabase.from("profiles").select("display_name, avatar_url").eq("id", user.id).maybeSingle(),
     listUserGroups(supabase),
   ]);
+
+  // Defesa em profundidade: mesma lógica do GroupSwitcher — a fonte já deveria
+  // vir única por id, mas uma lista duplicada aqui é um bug visual grave
+  // demais (e uma "key" React ausente) para confiar só nisso.
+  const seen = new Set<string>();
+  const groups = rawGroups.filter((entry) => {
+    if (seen.has(entry.group.id)) return false;
+    seen.add(entry.group.id);
+    return true;
+  });
 
   return (
     <div className="flex flex-col gap-5">
       <h1 className="text-xl font-bold">Perfil</h1>
 
-      <ProfilePanel displayName={profile?.display_name ?? ""} email={user.email ?? ""} />
+      <ProfilePanel
+        displayName={profile?.display_name ?? ""}
+        email={user.email ?? ""}
+        avatarUrl={profile?.avatar_url ?? null}
+        groupId={context.group.id}
+      />
 
       <Card>
         <CardHeader>

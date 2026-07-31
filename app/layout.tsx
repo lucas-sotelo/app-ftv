@@ -10,17 +10,17 @@ const mono = Geist_Mono({ variable: "--font-mono-app", subsets: ["latin"], displ
 
 export const metadata: Metadata = {
   title: {
-    default: "Futevôlei — partidas e estatísticas",
-    template: "%s · Futevôlei",
+    default: "Resenha na Areia — partidas e estatísticas",
+    template: "%s · Resenha na Areia",
   },
   description:
-    "Organize os grupos de futevôlei, registre as partidas e acompanhe estatísticas de jogadores, duplas e confrontos.",
-  applicationName: "Futevôlei",
+    "Organize os grupos de futevôlei e beach tênis, registre as partidas e acompanhe estatísticas de jogadores, duplas e confrontos.",
+  applicationName: "Resenha na Areia",
   manifest: "/manifest.webmanifest",
   appleWebApp: {
     capable: true,
     statusBarStyle: "default",
-    title: "Futevôlei",
+    title: "Resenha na Areia",
   },
   icons: {
     icon: [

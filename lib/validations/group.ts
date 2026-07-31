@@ -6,17 +6,30 @@ export const createGroupSchema = z.object({
     .trim()
     .min(2, "O nome do grupo precisa ter pelo menos 2 caracteres.")
     .max(60, "Nome muito longo."),
-  timezone: z.string().trim().min(1),
 });
+
+/** Emoji único (ou vazio) — não trava em regex de grafema pra não barrar combinações válidas de emoji. */
+const emojiField = z
+  .string()
+  .trim()
+  .max(8, "Use só um emoji.")
+  .nullable()
+  .optional()
+  .transform((v) => (v ? v : null));
 
 export const groupSettingsSchema = z.object({
   name: z.string().trim().min(2, "O nome do grupo precisa ter pelo menos 2 caracteres.").max(60),
-  timezone: z.string().trim().min(1),
-  rankingMinGames: z.coerce
+  minAttendancePercent: z.coerce
     .number()
-    .int("Use um número inteiro.")
-    .min(1, "O mínimo é 1 jogo.")
-    .max(999, "Valor muito alto."),
+    .min(0, "O mínimo é 0%.")
+    .max(100, "O máximo é 100%."),
+  avatarUrl: z
+    .union([z.string().trim().max(2048).url("Informe uma URL válida."), z.literal("")])
+    .nullable()
+    .optional()
+    .transform((v) => (v ? v : null)),
+  firstPlaceEmoji: emojiField,
+  lastPlaceEmoji: emojiField,
 });
 
 export const joinGroupSchema = z.object({

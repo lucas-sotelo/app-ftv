@@ -1,6 +1,6 @@
 "use client";
 
-import { ChevronDown, ChevronUp, Plus, UserRound } from "lucide-react";
+import { Camera, ChevronDown, ChevronUp, Plus, UserRound } from "lucide-react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import * as React from "react";
@@ -10,6 +10,7 @@ import { PlayerAvatar } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { EmptyState } from "@/components/ui/empty-state";
+import { Input } from "@/components/ui/input";
 import {
   Select,
   SelectContent,
@@ -22,9 +23,13 @@ import {
   linkPlayerToUserAction,
   reorderPlayersAction,
   setPlayerActiveAction,
+  setPlayerAvatarAction,
+  updatePlayerNicknameAction,
 } from "@/lib/actions/players";
 import type { GroupMemberEntry } from "@/lib/data/groups";
 import type { PlayerRow } from "@/lib/supabase/database.types";
+import { createClient } from "@/lib/supabase/client";
+import { cn } from "@/lib/utils";
 
 const UNLINKED = "__nenhum__";
 
@@ -42,6 +47,47 @@ export function PlayersManager({
   const router = useRouter();
   const [dialogOpen, setDialogOpen] = React.useState(false);
   const [busy, setBusy] = React.useState<string | null>(null);
+  const [uploadingAvatarId, setUploadingAvatarId] = React.useState<string | null>(null);
+  const avatarTargetId = React.useRef<string | null>(null);
+  const avatarInputRef = React.useRef<HTMLInputElement>(null);
+
+  const triggerAvatarUpload = (playerId: string) => {
+    avatarTargetId.current = playerId;
+    avatarInputRef.current?.click();
+  };
+
+  const handleAvatarChange = async (event: React.ChangeEvent<HTMLInputElement>) => {
+    const file = event.target.files?.[0];
+    event.target.value = "";
+    const playerId = avatarTargetId.current;
+    if (!file || !playerId) return;
+
+    setUploadingAvatarId(playerId);
+    try {
+      const supabase = createClient();
+      const extension = file.name.split(".").pop()?.toLowerCase() || "jpg";
+      const path = `${groupId}/${playerId}-${Date.now().toString(36)}.${extension}`;
+
+      const { error: uploadError } = await supabase.storage
+        .from("avatars")
+        .upload(path, file, { upsert: true, contentType: file.type || undefined });
+      if (uploadError) {
+        toast.error("Não foi possível enviar a foto.");
+        return;
+      }
+
+      const { data } = supabase.storage.from("avatars").getPublicUrl(path);
+      const result = await setPlayerAvatarAction(playerId, slug, data.publicUrl);
+      if (!result.ok) {
+        toast.error(result.error ?? "Não foi possível salvar a foto.");
+        return;
+      }
+      toast.success("Foto atualizada.");
+      router.refresh();
+    } finally {
+      setUploadingAvatarId(null);
+    }
+  };
 
   const run = async (
     id: string,
@@ -86,6 +132,16 @@ export function PlayersManager({
         Novo jogador
       </Button>
 
+      <input
+        ref={avatarInputRef}
+        type="file"
+        accept="image/*"
+        onChange={handleAvatarChange}
+        className="sr-only"
+        aria-hidden
+        tabIndex={-1}
+      />
+
       {players.length === 0 ? (
         <EmptyState
           icon={<UserRound className="size-8" aria-hidden />}
@@ -100,7 +156,25 @@ export function PlayersManager({
               className="bg-card flex flex-col gap-2 rounded-[var(--radius-app)] border p-3"
             >
               <div className="flex items-center gap-3">
-                <PlayerAvatar name={player.display_name} seed={player.id} />
+                <div className="relative shrink-0">
+                  <PlayerAvatar
+                    name={player.display_name}
+                    seed={player.id}
+                    imageUrl={player.avatar_url}
+                  />
+                  <button
+                    type="button"
+                    aria-label={`Trocar foto de ${player.display_name}`}
+                    disabled={uploadingAvatarId === player.id}
+                    onClick={() => triggerAvatarUpload(player.id)}
+                    className={cn(
+                      "bg-primary text-primary-foreground border-card absolute -right-1 -bottom-1 flex size-4 items-center justify-center rounded-full border",
+                      uploadingAvatarId === player.id && "opacity-60",
+                    )}
+                  >
+                    <Camera className="size-2.5" aria-hidden />
+                  </button>
+                </div>
                 <div className="min-w-0 flex-1">
                   <Link
                     href={`/${slug}/jogadores/${player.id}`}
@@ -135,6 +209,29 @@ export function PlayersManager({
                     <ChevronDown aria-hidden />
                   </Button>
                 </div>
+              </div>
+
+              <div className="flex flex-col gap-1">
+                <label htmlFor={`nickname-${player.id}`} className="text-muted-foreground text-xs">
+                  Apelido (opcional)
+                </label>
+                <Input
+                  id={`nickname-${player.id}`}
+                  defaultValue={player.nickname ?? ""}
+                  placeholder="Ex.: Formiga"
+                  maxLength={30}
+                  disabled={busy === player.id}
+                  onBlur={(event) => {
+                    const value = event.target.value.trim();
+                    if (value === (player.nickname ?? "")) return;
+                    run(
+                      player.id,
+                      () =>
+                        updatePlayerNicknameAction(player.id, slug, { nickname: value || null }),
+                      "Apelido atualizado.",
+                    );
+                  }}
+                />
               </div>
 
               <div className="flex flex-wrap items-center justify-between gap-2">

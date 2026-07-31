@@ -15,10 +15,12 @@ export interface RankingEntry {
   subtitle?: string;
   href?: string;
   avatarSeed?: string;
+  avatarUrl?: string | null;
   games: number;
   wins: number;
   losses: number;
   winRate: number;
+  emoji?: string | null;
 }
 
 const COLUMNS: { key: SortKey; label: string; className?: string }[] = [
@@ -61,10 +63,12 @@ export function RankingTable({
             subtitle={entry.subtitle}
             href={entry.href}
             avatarSeed={showAvatar ? entry.avatarSeed : undefined}
+            avatarUrl={entry.avatarUrl}
             games={entry.games}
             wins={entry.wins}
             losses={entry.losses}
             winRate={entry.winRate}
+            emoji={entry.emoji}
           />
         ))}
       </div>
@@ -117,6 +121,7 @@ export function RankingTable({
                       <PlayerAvatar
                         name={entry.title}
                         seed={entry.avatarSeed ?? entry.id}
+                        imageUrl={entry.avatarUrl}
                         size="sm"
                       />
                     ) : null}
@@ -127,10 +132,14 @@ export function RankingTable({
                           className="font-medium hover:underline"
                           prefetch={false}
                         >
+                          {entry.emoji ? <span aria-hidden>{entry.emoji} </span> : null}
                           {entry.title}
                         </Link>
                       ) : (
-                        <span className="font-medium">{entry.title}</span>
+                        <span className="font-medium">
+                          {entry.emoji ? <span aria-hidden>{entry.emoji} </span> : null}
+                          {entry.title}
+                        </span>
                       )}
                       {entry.subtitle ? (
                         <p className="text-muted-foreground text-xs">{entry.subtitle}</p>

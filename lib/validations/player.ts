@@ -27,6 +27,16 @@ export const playerSchema = z.object({
 
 export const quickPlayerSchema = playerSchema.pick({ displayName: true, isGuest: true });
 
+export const nicknameSchema = z.object({
+  nickname: z
+    .string()
+    .trim()
+    .max(30, "Apelido muito longo.")
+    .nullable()
+    .transform((v) => (v ? cleanDisplayName(v) : null)),
+});
+
 export type PlayerValues = z.input<typeof playerSchema>;
 export type PlayerInput = z.output<typeof playerSchema>;
 export type QuickPlayerInput = z.output<typeof quickPlayerSchema>;
+export type NicknameInput = z.output<typeof nicknameSchema>;

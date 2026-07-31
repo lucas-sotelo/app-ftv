@@ -25,7 +25,7 @@ import {
 } from "@/lib/stats/filters";
 import { applySort, parseSort } from "@/lib/stats/sort";
 import { createClient } from "@/lib/supabase/server";
-import { formatPlainDate } from "@/lib/utils/format";
+import { formatPlainDate, playerLabel } from "@/lib/utils/format";
 
 export const metadata: Metadata = { title: "Estatísticas" };
 export const dynamic = "force-dynamic";
@@ -73,13 +73,12 @@ export default async function StatsPage({
   const { group } = context;
   const basePath = `/${groupSlug}/estatisticas`;
   const period = resolveFilterPeriod(filters, group.timezone);
-  const minGames = effectiveMinGames(filters, group.ranking_min_games);
+  const pairMinGames = effectiveMinGames(filters);
 
   const query = {
     groupId: group.id,
     period,
     sessionId: filters.sessionId,
-    minGames,
   };
 
   const [players, sessions] = await Promise.all([
@@ -105,56 +104,114 @@ export default async function StatsPage({
         defaultValue="individual"
         label="Seções de estatística"
       />
-      <FiltersBar
-        {...filterProps}
-        showSearch
-        showMinGames={tab !== "confrontos"}
-        groupMinGames={group.ranking_min_games}
-      />
-      {minGames > 1 && tab !== "confrontos" ? (
+      <FiltersBar {...filterProps} showSearch showMinGames={tab === "duplas"} />
+      {tab === "duplas" && pairMinGames > 1 ? (
         <p className="text-muted-foreground text-xs">
-          Mostrando apenas quem tem {minGames} jogos ou mais. Use os filtros para ver todos.
+          Mostrando apenas duplas com {pairMinGames} jogos ou mais. Use os filtros para ver todas.
         </p>
       ) : null}
     </>
   );
 
   if (tab === "individual") {
-    const rows = await fetchPlayerStats(supabase, { ...query, playerId: filters.playerId });
-    const entries: RankingEntry[] = rows
-      .filter((row) => matchesSearch(row.display_name, filters.search))
-      .map((row) => ({
+    const rows = await fetchPlayerStats(supabase, {
+      ...query,
+      playerId: filters.playerId,
+      minAttendancePercent: group.min_attendance_percent,
+    });
+    const nicknameByPlayerId = new Map(players.map((p) => [p.id, p.nickname]));
+
+    // Posição, aproveitamento e elegibilidade já vêm prontos do banco — o
+    // front só separa em duas listas visuais a partir do boolean pronto,
+    // nunca recalcula percentual de presença.
+    const filteredRows = rows.filter((row) => matchesSearch(row.display_name, filters.search));
+    const mainRows = filteredRows.filter((row) => row.meets_min_attendance);
+    const aspiranteRows = filteredRows.filter((row) => !row.meets_min_attendance);
+    const lastMainIndex = mainRows.length - 1;
+
+    function toEntry(
+      row: (typeof filteredRows)[number],
+      options: { emoji?: string | null; showAttendance?: boolean } = {},
+    ): RankingEntry {
+      const subtitleParts: string[] = [];
+      if (!row.active) subtitleParts.push("inativo");
+      if (options.showAttendance) {
+        subtitleParts.push(`${Math.round(row.attendance_percent)}% de presença`);
+      }
+      return {
         id: row.player_id,
         position: row.position,
-        title: row.display_name,
-        subtitle: row.active ? undefined : "inativo",
+        title: playerLabel(row.display_name, nicknameByPlayerId.get(row.player_id)),
+        subtitle: subtitleParts.length > 0 ? subtitleParts.join(" · ") : undefined,
         href: `/${groupSlug}/jogadores/${row.player_id}`,
         avatarSeed: row.player_id,
+        avatarUrl: row.avatar_url,
         games: row.games,
         wins: row.wins,
         losses: row.losses,
         winRate: row.win_rate,
-      }));
+        emoji: options.emoji ?? null,
+      };
+    }
+
+    const mainEntries: RankingEntry[] = mainRows.map((row, index) =>
+      toEntry(row, {
+        emoji:
+          index === 0
+            ? group.first_place_emoji
+            : index === lastMainIndex && row.games > 0
+              ? group.last_place_emoji
+              : null,
+      }),
+    );
+    const aspiranteEntries: RankingEntry[] = aspiranteRows.map((row) =>
+      toEntry(row, { showAttendance: true }),
+    );
 
     return (
       <div className="flex flex-col gap-4">
         {header}
-        {entries.length === 0 ? (
+        {group.min_attendance_percent > 0 ? (
+          <p className="text-muted-foreground text-xs">
+            Ranking oficial exige pelo menos {group.min_attendance_percent}% de presença. Quem não
+            bate isso aparece como aspirante.
+          </p>
+        ) : null}
+        {mainEntries.length === 0 && aspiranteEntries.length === 0 ? (
           <EmptyRanking />
         ) : (
-          <RankingTable
-            entries={applySort(entries, sort)}
-            basePath={basePath}
-            searchParams={rawSearchParams}
-            sort={sort}
-          />
+          <>
+            {mainEntries.length > 0 ? (
+              <RankingTable
+                entries={applySort(mainEntries, sort)}
+                basePath={basePath}
+                searchParams={rawSearchParams}
+                sort={sort}
+              />
+            ) : null}
+            {aspiranteEntries.length > 0 ? (
+              <div className="flex flex-col gap-2">
+                <h2 className="text-base font-bold">Aspirantes ao ranking</h2>
+                <RankingTable
+                  entries={applySort(aspiranteEntries, sort)}
+                  basePath={basePath}
+                  searchParams={rawSearchParams}
+                  sort={sort}
+                />
+              </div>
+            ) : null}
+          </>
         )}
       </div>
     );
   }
 
   if (tab === "duplas") {
-    const rows = await fetchPairStats(supabase, { ...query, playerId: filters.playerId });
+    const rows = await fetchPairStats(supabase, {
+      ...query,
+      playerId: filters.playerId,
+      minGames: pairMinGames,
+    });
     const entries: RankingEntry[] = rows
       .filter((row) => matchesSearch(row.player_names.join(" "), filters.search))
       .map((row) => ({

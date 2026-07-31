@@ -18,7 +18,9 @@ export function RankingRow({
   losses,
   winRate,
   avatarSeed,
+  avatarUrl,
   highlight = false,
+  emoji,
 }: {
   position: number;
   title: string;
@@ -29,7 +31,9 @@ export function RankingRow({
   losses: number;
   winRate: number;
   avatarSeed?: string;
+  avatarUrl?: string | null;
   highlight?: boolean;
+  emoji?: string | null;
 }) {
   const content = (
     <>
@@ -42,9 +46,14 @@ export function RankingRow({
       >
         {position}
       </span>
-      {avatarSeed ? <PlayerAvatar name={title} seed={avatarSeed} size="sm" /> : null}
+      {avatarSeed ? (
+        <PlayerAvatar name={title} seed={avatarSeed} imageUrl={avatarUrl} size="sm" />
+      ) : null}
       <span className="min-w-0 flex-1">
-        <span className="block truncate text-sm font-semibold">{title}</span>
+        <span className="block truncate text-sm font-semibold">
+          {emoji ? <span aria-hidden>{emoji} </span> : null}
+          {title}
+        </span>
         <span className="text-muted-foreground block truncate text-xs">
           {subtitle ? `${subtitle} · ` : ""}
           {formatGames(games)} · {wins}V {losses}D

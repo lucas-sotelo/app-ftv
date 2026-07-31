@@ -147,3 +147,24 @@ export async function updateProfileAction(input: ProfileInput): Promise<ActionRe
     return failure(error);
   }
 }
+
+export async function updateProfileAvatarAction(avatarUrl: string | null): Promise<ActionResult> {
+  try {
+    const supabase = await createClient();
+    const {
+      data: { user },
+    } = await supabase.auth.getUser();
+    if (!user) return { ok: false, error: "Sua sessão expirou. Entre novamente." };
+
+    const { error } = await supabase
+      .from("profiles")
+      .update({ avatar_url: avatarUrl })
+      .eq("id", user.id);
+
+    if (error) return failure(error);
+    revalidatePath("/", "layout");
+    return success();
+  } catch (error) {
+    return failure(error);
+  }
+}

@@ -109,10 +109,10 @@ describe("filtros na URL", () => {
     expect(parseStatsFilters(Object.fromEntries(params))).toMatchObject(filters);
   });
 
-  it("usa o mínimo oficial do grupo quando não há escolha explícita", () => {
+  it("usa 1 (todas as duplas) quando não há escolha explícita", () => {
     const filters = parseStatsFilters({});
-    expect(effectiveMinGames(filters, 5)).toBe(5);
-    expect(effectiveMinGames(parseStatsFilters({ min: "1" }), 5)).toBe(1);
+    expect(effectiveMinGames(filters)).toBe(1);
+    expect(effectiveMinGames(parseStatsFilters({ min: "5" }))).toBe(5);
   });
 
   it("reconhece as abas", () => {

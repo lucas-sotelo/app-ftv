@@ -24,14 +24,41 @@ export async function createGroupAction(
   try {
     const supabase = await createClient();
     // Grupo + membro owner numa transação só: nunca sobra grupo sem dono.
+    // Fuso horário nunca vem do usuário no fluxo de criação: o banco exige
+    // o campo, mas todo grupo novo usa o mesmo fuso.
     const { data, error } = await supabase.rpc("create_group_with_owner", {
       p_name: parsed.data.name,
-      p_timezone: parsed.data.timezone,
+      p_timezone: "America/Sao_Paulo",
     });
     if (error) return failure(error);
 
     revalidatePath("/", "layout");
     return success({ slug: data.slug, id: data.id });
+  } catch (error) {
+    return failure(error);
+  }
+}
+
+/**
+ * Grava a foto do grupo logo após a criação. Separado de createGroupAction
+ * porque o upload no Storage só é permitido depois que o grupo existe: o
+ * bucket usa `{group_id}/...` e a policy exige is_group_admin(group_id).
+ */
+export async function setGroupAvatarAction(
+  groupId: string,
+  slug: string,
+  avatarUrl: string,
+): Promise<ActionResult> {
+  try {
+    const supabase = await createClient();
+    const { error } = await supabase
+      .from("groups")
+      .update({ avatar_url: avatarUrl })
+      .eq("id", groupId);
+    if (error) return failure(error);
+
+    revalidatePath(`/${slug}`, "layout");
+    return success();
   } catch (error) {
     return failure(error);
   }
@@ -71,8 +98,10 @@ export async function updateGroupSettingsAction(
       .from("groups")
       .update({
         name: parsed.data.name,
-        timezone: parsed.data.timezone,
-        ranking_min_games: parsed.data.rankingMinGames,
+        min_attendance_percent: parsed.data.minAttendancePercent,
+        avatar_url: parsed.data.avatarUrl,
+        first_place_emoji: parsed.data.firstPlaceEmoji,
+        last_place_emoji: parsed.data.lastPlaceEmoji,
       })
       .eq("id", groupId);
 

@@ -2,14 +2,15 @@ import { TZDate } from "@date-fns/tz";
 import { addDays, startOfDay, startOfMonth, startOfYear } from "date-fns";
 import { DEFAULT_TIMEZONE } from "./format";
 
-export const PERIOD_PRESETS = ["all", "year", "month", "custom"] as const;
+export const PERIOD_PRESETS = ["all", "year", "month", "day", "custom"] as const;
 export type PeriodPreset = (typeof PERIOD_PRESETS)[number];
 
 export const PERIOD_LABELS: Record<PeriodPreset, string> = {
   all: "Todo o período",
   year: "Ano atual",
   month: "Mês atual",
-  custom: "Personalizado",
+  day: "Dia específico",
+  custom: "Período personalizado",
 };
 
 export interface ResolvedPeriod {
@@ -54,6 +55,12 @@ export function resolvePeriod(
       const start = startOfMonth(now);
       const next = new TZDate(now.getFullYear(), now.getMonth() + 1, 1, timeZone);
       return { preset, from: asUtc(start), to: asUtc(startOfMonth(next)) };
+    }
+    case "day": {
+      // Um único dia de calendário: usa "de" como a data e fecha em +1 dia.
+      if (!options.from) return { preset, from: null, to: null };
+      const start = plainDateStart(options.from, timeZone);
+      return { preset, from: asUtc(start), to: asUtc(addDays(start, 1)) };
     }
     case "custom": {
       const from = options.from ? plainDateStart(options.from, timeZone) : null;

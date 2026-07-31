@@ -15,7 +15,9 @@ export default function AuthLayout({ children }: { children: ReactNode }) {
             priority
           />
           <div>
-            <h1 className="text-2xl leading-tight font-extrabold tracking-tight">Futevôlei</h1>
+            <h1 className="text-2xl leading-tight font-extrabold tracking-tight">
+              Resenha na Areia
+            </h1>
             <p className="text-muted-foreground text-sm">
               Partidas, duplas e estatísticas do grupo.
             </p>

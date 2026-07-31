@@ -45,11 +45,13 @@ export default async function PlayerPage({
   const filters = parseStatsFilters(rawSearchParams);
 
   const supabase = await createClient();
-  const context = await getGroupContext(supabase, groupSlug);
+  const [context, player] = await Promise.all([
+    getGroupContext(supabase, groupSlug),
+    getPlayer(supabase, playerId),
+  ]);
   if (!context) notFound();
 
   const { group } = context;
-  const player = await getPlayer(supabase, playerId);
   if (!player || player.group_id !== group.id) notFound();
 
   const period = resolveFilterPeriod(filters, group.timezone);
@@ -89,7 +91,12 @@ export default async function PlayerPage({
   return (
     <div className="flex flex-col gap-5">
       <header className="flex items-center gap-3">
-        <PlayerAvatar name={player.display_name} seed={player.id} size="lg" />
+        <PlayerAvatar
+          name={player.display_name}
+          seed={player.id}
+          imageUrl={player.avatar_url}
+          size="lg"
+        />
         <div className="min-w-0">
           <h1 className="truncate text-xl font-bold">{player.display_name}</h1>
           <div className="mt-1 flex flex-wrap gap-1.5">

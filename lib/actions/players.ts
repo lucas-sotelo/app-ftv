@@ -2,7 +2,12 @@
 
 import { revalidatePath } from "next/cache";
 import { createClient } from "@/lib/supabase/server";
-import { playerSchema, quickPlayerSchema, type PlayerInput } from "@/lib/validations/player";
+import {
+  nicknameSchema,
+  playerSchema,
+  quickPlayerSchema,
+  type PlayerInput,
+} from "@/lib/validations/player";
 import { failure, success, type ActionResult } from "./result";
 
 async function currentUserId() {
@@ -126,6 +131,47 @@ export async function reorderPlayersAction(
         .eq("id", item.id);
       if (error) return failure(error);
     }
+    revalidatePath(`/${slug}`, "layout");
+    return success();
+  } catch (error) {
+    return failure(error);
+  }
+}
+
+export async function updatePlayerNicknameAction(
+  playerId: string,
+  slug: string,
+  input: { nickname: string | null },
+): Promise<ActionResult> {
+  const parsed = nicknameSchema.safeParse(input);
+  if (!parsed.success) return failure(new Error(parsed.error.issues[0].message));
+
+  try {
+    const supabase = await createClient();
+    const { error } = await supabase
+      .from("players")
+      .update({ nickname: parsed.data.nickname })
+      .eq("id", playerId);
+    if (error) return failure(error);
+    revalidatePath(`/${slug}`, "layout");
+    return success();
+  } catch (error) {
+    return failure(error);
+  }
+}
+
+export async function setPlayerAvatarAction(
+  playerId: string,
+  slug: string,
+  avatarUrl: string | null,
+): Promise<ActionResult> {
+  try {
+    const supabase = await createClient();
+    const { error } = await supabase
+      .from("players")
+      .update({ avatar_url: avatarUrl })
+      .eq("id", playerId);
+    if (error) return failure(error);
     revalidatePath(`/${slug}`, "layout");
     return success();
   } catch (error) {

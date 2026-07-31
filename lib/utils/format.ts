@@ -67,6 +67,11 @@ export function formatGames(games: number): string {
   return games === 1 ? "1 jogo" : `${formatInteger(games)} jogos`;
 }
 
+/** "Nome" ou "Nome (Apelido)" quando o jogador tem apelido cadastrado. */
+export function playerLabel(displayName: string, nickname?: string | null): string {
+  return nickname ? `${displayName} (${nickname})` : displayName;
+}
+
 export function initials(name: string): string {
   const parts = name.trim().split(/\s+/).slice(0, 2);
   return parts.map((p) => p.charAt(0).toLocaleUpperCase("pt-BR")).join("") || "?";

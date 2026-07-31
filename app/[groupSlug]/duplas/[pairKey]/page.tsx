@@ -61,11 +61,13 @@ export default async function PairPage({
   if (!ids) notFound();
 
   const supabase = await createClient();
-  const context = await getGroupContext(supabase, groupSlug);
+  const [context, pairPlayers] = await Promise.all([
+    getGroupContext(supabase, groupSlug),
+    getPlayersByIds(supabase, ids),
+  ]);
   if (!context) notFound();
   const { group } = context;
 
-  const pairPlayers = await getPlayersByIds(supabase, ids);
   if (pairPlayers.length !== 2 || pairPlayers.some((p) => p.group_id !== group.id)) notFound();
 
   // A identidade da dupla é canônica; a exibição segue sort_order.

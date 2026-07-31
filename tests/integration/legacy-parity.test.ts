@@ -158,7 +158,7 @@ describe("paridade da camada SQL com a planilha legada", () => {
   it("reproduz o ranking individual da planilha", async () => {
     const { data } = await owner.client.rpc("stats_players", {
       p_group_id: group.id,
-      p_min_games: 1,
+      p_min_attendance_percent: 0,
     });
 
     expect(
@@ -263,15 +263,25 @@ describe("paridade da camada SQL com a planilha legada", () => {
     expect(new Set(keys).size).toBe(keys.length);
   });
 
-  it("respeita o mínimo de jogos do ranking oficial", async () => {
+  it("respeita o percentual mínimo de presença do ranking oficial", async () => {
     const { data } = await owner.client.rpc("stats_players", {
       p_group_id: group.id,
-      p_min_games: 10,
+      p_min_attendance_percent: 20,
     });
-    // Sotelo (4 jogos) e Arthur (5) ficam de fora.
-    expect(data!.map((row) => row.display_name).sort()).toEqual(
-      ["Alex", "Daniel", "Luis", "Léo", "Ronaldo"].sort(),
-    );
+    // Sotelo (4/39 ≈ 10%) e Arthur (5/39 ≈ 13%) ficam de fora do ranking
+    // oficial, mas continuam aparecendo na resposta como aspirantes.
+    expect(
+      data!
+        .filter((row) => row.meets_min_attendance)
+        .map((row) => row.display_name)
+        .sort(),
+    ).toEqual(["Alex", "Daniel", "Luis", "Léo", "Ronaldo"].sort());
+    expect(
+      data!
+        .filter((row) => !row.meets_min_attendance)
+        .map((row) => row.display_name)
+        .sort(),
+    ).toEqual(["Arthur", "Sotelo"].sort());
   });
 
   it("uma partida anulada some das estatísticas", async () => {
@@ -298,7 +308,7 @@ describe("paridade da camada SQL com a planilha legada", () => {
       // 05/07/2026 apenas (fuso America/Sao_Paulo).
       p_from: "2026-07-05T03:00:00.000Z",
       p_to: "2026-07-06T03:00:00.000Z",
-      p_min_games: 1,
+      p_min_attendance_percent: 0,
     });
 
     const totalGames = data!.reduce((sum, row) => sum + row.games, 0);

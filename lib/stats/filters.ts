@@ -98,12 +98,9 @@ export function resolveFilterPeriod(filters: StatsFilters, timeZone: string): Re
   return resolvePeriod(filters.period, { timeZone, from: filters.from, to: filters.to });
 }
 
-/**
- * Mínimo de jogos efetivo: quando o usuário não escolheu nada, vale o mínimo
- * oficial configurado no grupo.
- */
-export function effectiveMinGames(filters: StatsFilters, groupMinGames: number): number {
-  return Math.max(1, filters.minGames ?? groupMinGames);
+/** Mínimo de jogos efetivo do filtro manual de duplas (padrão: todas as duplas). */
+export function effectiveMinGames(filters: StatsFilters): number {
+  return Math.max(1, filters.minGames ?? 1);
 }
 
 export function hasActiveFilters(filters: StatsFilters): boolean {

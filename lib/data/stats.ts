@@ -21,13 +21,16 @@ export interface StatsQuery {
  * Todas as estatísticas vêm do Postgres. O frontend só formata.
  * As funções são SECURITY INVOKER: quem não é membro não recebe linha alguma.
  */
-export async function fetchPlayerStats(supabase: Client, q: StatsQuery): Promise<PlayerStatRow[]> {
+export async function fetchPlayerStats(
+  supabase: Client,
+  q: Omit<StatsQuery, "minGames"> & { minAttendancePercent?: number },
+): Promise<PlayerStatRow[]> {
   const { data, error } = await supabase.rpc("stats_players", {
     p_group_id: q.groupId,
     ...periodToRpcArgs(q.period),
     p_session_id: q.sessionId ?? null,
     p_player_id: q.playerId ?? null,
-    p_min_games: q.minGames ?? 1,
+    p_min_attendance_percent: q.minAttendancePercent ?? 0,
   });
   if (error) throw error;
   return data ?? [];

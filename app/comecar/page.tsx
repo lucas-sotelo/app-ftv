@@ -1,15 +1,18 @@
+import { Trophy } from "lucide-react";
 import type { Metadata } from "next";
-import Image from "next/image";
 import Link from "next/link";
 import { redirect } from "next/navigation";
+import { PlayerAvatar } from "@/components/ui/avatar";
+import { Badge } from "@/components/ui/badge";
 import { listUserGroups } from "@/lib/data/groups";
+import { ROLE_LABELS } from "@/lib/permissions";
 import { createClient } from "@/lib/supabase/server";
 import { OnboardingCards } from "./onboarding-cards";
 
-export const metadata: Metadata = { title: "Começar" };
+export const metadata: Metadata = { title: "Início" };
 export const dynamic = "force-dynamic";
 
-export default async function OnboardingPage({
+export default async function HomePage({
   searchParams,
 }: {
   searchParams: Promise<{ convite?: string }>;
@@ -21,38 +24,68 @@ export default async function OnboardingPage({
   if (!user) redirect("/entrar");
 
   const { convite } = await searchParams;
-  const groups = await listUserGroups(supabase);
+
+  const [{ data: profile }, groups] = await Promise.all([
+    supabase.from("profiles").select("display_name").eq("id", user.id).maybeSingle(),
+    listUserGroups(supabase),
+  ]);
+
+  const greetingName = profile?.display_name || user.email?.split("@")[0] || "atleta";
 
   return (
-    <main className="mx-auto flex w-full max-w-lg flex-1 flex-col gap-6 px-4 py-10">
-      <div className="flex flex-col items-center gap-3 text-center">
-        <Image
-          src="/icons/icon-192.png"
-          alt=""
-          width={56}
-          height={56}
-          className="rounded-[var(--radius-app)] shadow-sm"
+    <div className="bg-stone-50 dark:bg-background flex flex-1 flex-col">
+      <main className="mx-auto flex w-full max-w-3xl flex-1 flex-col gap-6 px-4 py-6">
+        {/* eslint-disable-next-line @next/next/no-img-element -- banner estático, sem otimização necessária */}
+        <img
+          src="/images/banner-home.jpg"
+          alt="Pôr do sol em uma quadra de areia, com rede de futevôlei/beach tênis"
+          className="aspect-video w-full rounded-[var(--radius-app)] object-cover shadow-sm"
         />
-        <div>
-          <h1 className="text-2xl font-extrabold tracking-tight">Vamos começar</h1>
-          <p className="text-muted-foreground text-sm">
-            Crie um grupo para o seu pessoal ou entre em um grupo existente com o código do convite.
-          </p>
-        </div>
-      </div>
 
-      <OnboardingCards initialCode={convite ?? ""} />
+        <h1 className="text-2xl leading-tight font-bold tracking-tight">
+          Vamos pra resenha, {greetingName}!
+        </h1>
 
-      {groups.length > 0 ? (
-        <p className="text-muted-foreground text-center text-sm">
-          <Link
-            href={`/${groups[0].group.slug}`}
-            className="text-primary font-medium hover:underline"
-          >
-            Voltar para {groups[0].group.name}
-          </Link>
-        </p>
-      ) : null}
-    </main>
+        <hr className="mt-8 mb-6 border-gray-200 dark:border-white/10" />
+
+        <section className="flex flex-col gap-3">
+          <h2 className="text-lg font-bold">Seus grupos</h2>
+
+          {groups.length === 0 ? (
+            <p className="text-muted-foreground text-sm">
+              Você ainda não faz parte de nenhum grupo. Crie o seu ou entre com um código de
+              convite abaixo.
+            </p>
+          ) : (
+            <ul className="flex flex-col gap-2">
+              {groups.map(({ group, role }) => (
+                <li key={group.id}>
+                  <Link
+                    href={`/${group.slug}`}
+                    className="flex items-center gap-3 rounded-xl border border-gray-100 bg-white p-3 shadow-sm transition-colors hover:bg-gray-50 dark:border-white/10 dark:bg-card dark:hover:bg-muted"
+                  >
+                    <PlayerAvatar name={group.name} seed={group.id} imageUrl={group.avatar_url} />
+                    <span className="min-w-0 flex-1">
+                      <span className="flex items-center gap-1.5">
+                        <Trophy className="text-court-600 size-3.5 shrink-0" aria-hidden />
+                        <span className="block truncate text-sm font-semibold">{group.name}</span>
+                      </span>
+                      <span className="text-muted-foreground block truncate text-xs">
+                        {group.timezone.replace("America/", "").replace("_", " ")}
+                      </span>
+                    </span>
+                    <Badge variant={role === "owner" ? "primary" : "default"}>
+                      {ROLE_LABELS[role]}
+                    </Badge>
+                  </Link>
+                </li>
+              ))}
+            </ul>
+          )}
+        </section>
+
+        <OnboardingCards initialCode={convite ?? ""} />
+      </main>
+    </div>
   );
 }

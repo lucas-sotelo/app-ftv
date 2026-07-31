@@ -1,7 +1,7 @@
 {
-  "name": "Futevôlei — partidas e estatísticas",
-  "short_name": "Futevôlei",
-  "description": "Organize os grupos de futevôlei, registre as partidas e acompanhe estatísticas de jogadores, duplas e confrontos.",
+  "name": "Resenha na Areia — partidas e estatísticas",
+  "short_name": "Resenha na Areia",
+  "description": "Organize os grupos de futevôlei e beach tênis, registre as partidas e acompanhe estatísticas de jogadores, duplas e confrontos.",
   "id": "/",
   "start_url": "/",
   "scope": "/",

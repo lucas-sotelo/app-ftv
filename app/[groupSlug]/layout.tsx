@@ -1,8 +1,11 @@
+import { Home } from "lucide-react";
 import { redirect } from "next/navigation";
+import Link from "next/link";
 import type { ReactNode } from "react";
 import { GroupSwitcher } from "@/components/groups/group-switcher";
 import { BottomNav } from "@/components/layout/bottom-nav";
 import { ThemeToggle } from "@/components/layout/theme-toggle";
+import { Button } from "@/components/ui/button";
 import { InstallPrompt } from "@/components/pwa/install-prompt";
 import { GroupRealtime } from "@/components/realtime/group-realtime";
 import { getGroupContext, listUserGroups } from "@/lib/data/groups";
@@ -35,10 +38,14 @@ export default async function GroupLayout({
   // lança o erro, o Next sobe para o not-found do segmento pai (e cai no 404
   // genérico, já que não há um em app/). Por isso renderiza o componente
   // direto em vez de chamar notFound().
-  const context = await getGroupContext(supabase, groupSlug);
+  //
+  // As duas consultas são independentes (uma pelo slug, outra pelo usuário
+  // autenticado) — rodam em paralelo para não empilhar round-trips.
+  const [context, groups] = await Promise.all([
+    getGroupContext(supabase, groupSlug),
+    listUserGroups(supabase),
+  ]);
   if (!context) return <GroupNotFound />;
-
-  const groups = await listUserGroups(supabase);
 
   return (
     <div className="flex min-h-dvh flex-1 flex-col">
@@ -48,9 +55,21 @@ export default async function GroupLayout({
         <div className="mx-auto flex max-w-3xl items-center justify-between gap-2 px-4 py-2">
           <GroupSwitcher
             currentSlug={groupSlug}
-            groups={groups.map((g) => ({ id: g.group.id, name: g.group.name, slug: g.group.slug }))}
+            groups={groups.map((g) => ({
+              id: g.group.id,
+              name: g.group.name,
+              slug: g.group.slug,
+              avatarUrl: g.group.avatar_url,
+            }))}
           />
-          <ThemeToggle />
+          <div className="flex items-center gap-1">
+            <Button asChild variant="ghost" size="icon" aria-label="Ir para a Home">
+              <Link href="/comecar">
+                <Home aria-hidden />
+              </Link>
+            </Button>
+            <ThemeToggle />
+          </div>
         </div>
       </header>
 

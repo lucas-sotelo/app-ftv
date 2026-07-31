@@ -202,36 +202,24 @@ async function main() {
   for (const item of pending) {
     const playedAtIso = `${item.match.played_at}T15:00:00.000Z`; // 12h em America/Sao_Paulo
 
-    const { data: inserted, error } = await supabase
-      .from("matches")
-      .insert({
-        group_id: group.id,
-        session_id: sessionIdByDate.get(item.match.played_at) ?? null,
-        played_at: playedAtIso,
-        // A planilha não guardava pontos: entra sem placar, só com o vencedor.
-        winning_side: "A",
-        team_a_score: null,
-        team_b_score: null,
-        external_key: item.externalKey,
-        created_by: authorId,
-      })
-      .select("id")
-      .single();
+    // import_legacy_match faz matches + match_players na mesma transação
+    // (mesma chamada de RPC). Inserts soltos via REST commitam cada um
+    // sozinho, e a constraint trigger 2x2 dispara no commit do insert em
+    // matches, antes de match_players existir.
+    const { error } = await supabase.rpc("import_legacy_match", {
+      p_group_id: group.id,
+      p_played_at: playedAtIso,
+      // A planilha não guardava pontos: entra sem placar, só com o vencedor,
+      // que sempre é escalado no lado A.
+      p_winning_side: "A",
+      p_team_a: [playerId(item.match.winner[0]), playerId(item.match.winner[1])],
+      p_team_b: [playerId(item.match.loser[0]), playerId(item.match.loser[1])],
+      p_session_id: sessionIdByDate.get(item.match.played_at) ?? null,
+      p_external_key: item.externalKey,
+      p_created_by: authorId,
+    });
 
     if (error) fail(`Falha ao inserir partida (${item.externalKey}): ${error.message}`);
-
-    const { error: lineupError } = await supabase.from("match_players").insert([
-      { match_id: inserted.id, player_id: playerId(item.match.winner[0]), side: "A", slot: 1 },
-      { match_id: inserted.id, player_id: playerId(item.match.winner[1]), side: "A", slot: 2 },
-      { match_id: inserted.id, player_id: playerId(item.match.loser[0]), side: "B", slot: 1 },
-      { match_id: inserted.id, player_id: playerId(item.match.loser[1]), side: "B", slot: 2 },
-    ]);
-
-    if (lineupError) {
-      // A partida ficaria sem escalação e quebraria a validação 2x2 no COMMIT.
-      await supabase.from("matches").delete().eq("id", inserted.id);
-      fail(`Falha ao escalar a partida (${item.externalKey}): ${lineupError.message}`);
-    }
 
     imported += 1;
   }
@@ -247,7 +235,7 @@ async function verify(targetGroupId: string) {
 
   const [{ data: overview }, { data: playerStats }, { data: pairStats }] = await Promise.all([
     supabase.rpc("group_overview", { p_group_id: targetGroupId }),
-    supabase.rpc("stats_players", { p_group_id: targetGroupId, p_min_games: 1 }),
+    supabase.rpc("stats_players", { p_group_id: targetGroupId, p_min_attendance_percent: 0 }),
     supabase.rpc("stats_pairs", { p_group_id: targetGroupId, p_min_games: 1 }),
   ]);
 
