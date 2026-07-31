@@ -9,25 +9,40 @@ interface BeforeInstallPromptEvent extends Event {
   userChoice: Promise<{ outcome: "accepted" | "dismissed" }>;
 }
 
+declare global {
+  interface Window {
+    __ftvInstallPrompt?: BeforeInstallPromptEvent;
+  }
+}
+
 const DISMISS_KEY = "ftv:install-dismissed";
+const CAPTURE_EVENT = "ftv:beforeinstallprompt";
 
 /**
  * Convite de instalação. Só aparece quando o navegador de fato oferece o
  * `beforeinstallprompt` — nada de instruções para quem não pode instalar.
+ *
+ * O evento em si é capturado o quanto antes por um script `beforeInteractive`
+ * (ver app/layout.tsx): em mobile, com o bundle ainda baixando/parseando, ele
+ * pode disparar antes deste componente montar — ou numa rota onde ele nem é
+ * renderizado (ex.: /comecar, antes do usuário entrar num grupo). Guardando o
+ * evento em `window`, qualquer tela que monte este componente depois consegue
+ * recuperá-lo, em vez de perdê-lo pra sempre.
  */
 export function InstallPrompt() {
   const [deferred, setDeferred] = React.useState<BeforeInstallPromptEvent | null>(null);
 
   React.useEffect(() => {
-    const onPrompt = (event: Event) => {
-      event.preventDefault();
-      // Quem já dispensou o convite não vê de novo.
-      if (localStorage.getItem(DISMISS_KEY) === "1") return;
-      setDeferred(event as BeforeInstallPromptEvent);
+    // Quem já dispensou o convite não vê de novo.
+    if (localStorage.getItem(DISMISS_KEY) === "1") return;
+
+    const capture = () => {
+      if (window.__ftvInstallPrompt) setDeferred(window.__ftvInstallPrompt);
     };
 
-    window.addEventListener("beforeinstallprompt", onPrompt);
-    return () => window.removeEventListener("beforeinstallprompt", onPrompt);
+    capture();
+    window.addEventListener(CAPTURE_EVENT, capture);
+    return () => window.removeEventListener(CAPTURE_EVENT, capture);
   }, []);
 
   if (!deferred) return null;

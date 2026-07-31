@@ -39,31 +39,6 @@ export async function createGroupAction(
   }
 }
 
-/**
- * Grava a foto do grupo logo após a criação. Separado de createGroupAction
- * porque o upload no Storage só é permitido depois que o grupo existe: o
- * bucket usa `{group_id}/...` e a policy exige is_group_admin(group_id).
- */
-export async function setGroupAvatarAction(
-  groupId: string,
-  slug: string,
-  avatarUrl: string,
-): Promise<ActionResult> {
-  try {
-    const supabase = await createClient();
-    const { error } = await supabase
-      .from("groups")
-      .update({ avatar_url: avatarUrl })
-      .eq("id", groupId);
-    if (error) return failure(error);
-
-    revalidatePath(`/${slug}`, "layout");
-    return success();
-  } catch (error) {
-    return failure(error);
-  }
-}
-
 export async function joinGroupAction(
   input: JoinGroupInput,
 ): Promise<ActionResult<{ slug: string }>> {

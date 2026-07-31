@@ -49,9 +49,8 @@ export default async function HomePage({
     <div className="from-sand-50 via-background to-background dark:bg-background flex flex-1 flex-col bg-gradient-to-b">
       <header className="bg-background/95 sticky top-0 z-30 border-b backdrop-blur">
         <div className="mx-auto flex w-full max-w-3xl items-center justify-between gap-3 px-4 py-3">
-          <p className="min-w-0 text-balance text-sm leading-snug font-medium">
-            Bora pra areia, <span className="font-semibold">{greetingName}</span>? Será que hoje
-            vai ser dia ou noite?
+          <p className="min-w-0 truncate text-sm font-medium">
+            Bora pra areia, <span className="font-semibold">{greetingName}</span>?
           </p>
           <HomeUserMenu
             displayName={greetingName}
