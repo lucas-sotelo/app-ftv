@@ -3,6 +3,7 @@ import type {
   DailyLanternRow,
   MassacreRow,
   PairUnderdogRow,
+  PlayerCurrentStreakRow,
   PlayerStreakRow,
 } from "@/lib/supabase/database.types";
 import type { Client } from "./types";
@@ -64,6 +65,19 @@ export async function fetchPairUnderdogs(
     .eq("group_id", groupId)
     .order("played_at", { ascending: false })
     .limit(limit);
+  if (error) throw error;
+  return data ?? [];
+}
+
+/** Sequência em andamento (não a maior histórica) de cada jogador. */
+export async function fetchCurrentStreaks(
+  supabase: Client,
+  groupId: string,
+): Promise<PlayerCurrentStreakRow[]> {
+  const { data, error } = await supabase
+    .from("v_player_current_streak")
+    .select("*")
+    .eq("group_id", groupId);
   if (error) throw error;
   return data ?? [];
 }

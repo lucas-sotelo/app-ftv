@@ -2,6 +2,7 @@ import { ArrowRight, CalendarDays, Plus, Trophy, Users, Volleyball } from "lucid
 import type { Metadata } from "next";
 import Link from "next/link";
 import { notFound } from "next/navigation";
+import { PersonalHighlightCard } from "@/components/dashboard/personal-highlight-card";
 import { MatchCard } from "@/components/matches/match-card";
 import { RankingRow } from "@/components/stats/ranking-row";
 import { PlayerAvatar } from "@/components/ui/avatar";
@@ -10,7 +11,8 @@ import { EmptyState } from "@/components/ui/empty-state";
 import { StatTile } from "@/components/ui/stat-tile";
 import { getGroupContext } from "@/lib/data/groups";
 import { listMatches } from "@/lib/data/matches";
-import { listPlayers } from "@/lib/data/players";
+import { getMyPlayer, listPlayers } from "@/lib/data/players";
+import { fetchCurrentStreaks } from "@/lib/data/resenha";
 import { fetchGroupOverview, fetchPairStats, fetchPlayerStats } from "@/lib/data/stats";
 import { can } from "@/lib/permissions";
 import { createClient } from "@/lib/supabase/server";
@@ -44,18 +46,30 @@ export default async function DashboardPage({
   const period = resolvePeriod("all", { timeZone: group.timezone });
   const statsQuery = { groupId: group.id, period, minGames: 1 };
 
-  const [overview, players, pairs, recent, allPlayers] = await Promise.all([
-    fetchGroupOverview(supabase, group.id),
-    fetchPlayerStats(supabase, statsQuery),
-    fetchPairStats(supabase, statsQuery),
-    listMatches(supabase, group.id, { limit: 5 }),
-    listPlayers(supabase, group.id),
-  ]);
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+
+  const [overview, players, pairs, recent, allPlayers, myPlayer, currentStreaks] =
+    await Promise.all([
+      fetchGroupOverview(supabase, group.id),
+      fetchPlayerStats(supabase, statsQuery),
+      fetchPairStats(supabase, statsQuery),
+      listMatches(supabase, group.id, { limit: 5 }),
+      listPlayers(supabase, group.id),
+      user ? getMyPlayer(supabase, group.id, user.id) : Promise.resolve(null),
+      fetchCurrentStreaks(supabase, group.id),
+    ]);
 
   const leader = players[0];
   const leaderNickname = allPlayers.find((p) => p.id === leader?.player_id)?.nickname;
   const bestPair = pairs[0];
   const isAdmin = can.manageMatches(role);
+
+  const myStat = myPlayer ? players.find((p) => p.player_id === myPlayer.id) : undefined;
+  const myStreak = myPlayer
+    ? currentStreaks.find((s) => s.player_id === myPlayer.id)
+    : undefined;
 
   return (
     <div className="flex flex-col gap-5">
@@ -63,6 +77,20 @@ export default async function DashboardPage({
         <PlayerAvatar name={group.name} seed={group.id} imageUrl={group.avatar_url} size="lg" />
         <h1 className="min-w-0 truncate text-xl font-bold">{group.name}</h1>
       </div>
+
+      {myPlayer && myStat ? (
+        <PersonalHighlightCard
+          displayName={myPlayer.display_name}
+          nickname={myPlayer.nickname}
+          winRate={myStat.win_rate}
+          games={myStat.games}
+          wins={myStat.wins}
+          losses={myStat.losses}
+          streak={
+            myStreak ? { type: myStreak.streak_type, length: myStreak.streak_length } : null
+          }
+        />
+      ) : null}
 
       {isAdmin ? (
         <Button asChild size="lg" block className="shadow-sm">

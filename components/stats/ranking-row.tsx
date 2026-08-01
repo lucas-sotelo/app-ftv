@@ -1,8 +1,15 @@
 import Link from "next/link";
+import { PlayerBadges } from "@/components/players/player-badges";
 import { PlayerAvatar } from "@/components/ui/avatar";
 import { WinRateBar } from "@/components/ui/win-rate";
 import { formatGames } from "@/lib/utils/format";
 import { cn } from "@/lib/utils";
+
+interface RankingBadge {
+  icon: string;
+  label: string;
+  description?: string;
+}
 
 /**
  * Linha de ranking em formato de card — usada no celular.
@@ -21,6 +28,7 @@ export function RankingRow({
   avatarUrl,
   highlight = false,
   emoji,
+  badges,
 }: {
   position: number;
   title: string;
@@ -34,6 +42,7 @@ export function RankingRow({
   avatarUrl?: string | null;
   highlight?: boolean;
   emoji?: string | null;
+  badges?: RankingBadge[];
 }) {
   const content = (
     <>
@@ -50,9 +59,14 @@ export function RankingRow({
         <PlayerAvatar name={title} seed={avatarSeed} imageUrl={avatarUrl} size="sm" />
       ) : null}
       <span className="min-w-0 flex-1">
-        <span className="block truncate text-sm font-semibold">
-          {emoji ? <span aria-hidden>{emoji} </span> : null}
-          {title}
+        <span className="flex items-center gap-1">
+          <span className="block truncate text-sm font-semibold">
+            {emoji ? <span aria-hidden>{emoji} </span> : null}
+            {title}
+          </span>
+          {badges && badges.length > 0 ? (
+            <PlayerBadges badges={badges} size="sm" />
+          ) : null}
         </span>
         <span className="text-muted-foreground block truncate text-xs">
           {subtitle ? `${subtitle} · ` : ""}

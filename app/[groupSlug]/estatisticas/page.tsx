@@ -6,6 +6,7 @@ import { HeadToHeadList, type HeadToHeadEntry } from "@/components/stats/head-to
 import { RankingTable, type RankingEntry } from "@/components/stats/ranking-table";
 import { StatsTabs } from "@/components/stats/stats-tabs";
 import { EmptyState } from "@/components/ui/empty-state";
+import { fetchLatestBadgesByPlayer } from "@/lib/data/badges";
 import { getGroupContext } from "@/lib/data/groups";
 import { listSessions } from "@/lib/data/matches";
 import { listPlayers } from "@/lib/data/players";
@@ -120,6 +121,11 @@ export default async function StatsPage({
       minAttendancePercent: group.min_attendance_percent,
     });
     const nicknameByPlayerId = new Map(players.map((p) => [p.id, p.nickname]));
+    const badgesByPlayerId = await fetchLatestBadgesByPlayer(
+      supabase,
+      group.id,
+      rows.map((row) => row.player_id),
+    );
 
     // Posição, aproveitamento e elegibilidade já vêm prontos do banco — o
     // front só separa em duas listas visuais a partir do boolean pronto,
@@ -151,6 +157,7 @@ export default async function StatsPage({
         losses: row.losses,
         winRate: row.win_rate,
         emoji: options.emoji ?? null,
+        badges: badgesByPlayerId.get(row.player_id),
       };
     }
 

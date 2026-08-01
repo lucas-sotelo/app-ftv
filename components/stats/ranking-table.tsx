@@ -1,5 +1,6 @@
 import { ArrowDown, ArrowUp } from "lucide-react";
 import Link from "next/link";
+import { PlayerBadges } from "@/components/players/player-badges";
 import { PlayerAvatar } from "@/components/ui/avatar";
 import { WinRateBar } from "@/components/ui/win-rate";
 import type { SearchParamsInput } from "@/lib/stats/filters";
@@ -21,6 +22,7 @@ export interface RankingEntry {
   losses: number;
   winRate: number;
   emoji?: string | null;
+  badges?: { icon: string; label: string; description?: string }[];
 }
 
 const COLUMNS: { key: SortKey; label: string; className?: string }[] = [
@@ -69,6 +71,7 @@ export function RankingTable({
             losses={entry.losses}
             winRate={entry.winRate}
             emoji={entry.emoji}
+            badges={entry.badges}
           />
         ))}
       </div>
@@ -126,21 +129,26 @@ export function RankingTable({
                       />
                     ) : null}
                     <div className="min-w-0">
-                      {entry.href ? (
-                        <Link
-                          href={entry.href}
-                          className="font-medium hover:underline"
-                          prefetch={false}
-                        >
-                          {entry.emoji ? <span aria-hidden>{entry.emoji} </span> : null}
-                          {entry.title}
-                        </Link>
-                      ) : (
-                        <span className="font-medium">
-                          {entry.emoji ? <span aria-hidden>{entry.emoji} </span> : null}
-                          {entry.title}
-                        </span>
-                      )}
+                      <div className="flex items-center gap-1.5">
+                        {entry.href ? (
+                          <Link
+                            href={entry.href}
+                            className="font-medium hover:underline"
+                            prefetch={false}
+                          >
+                            {entry.emoji ? <span aria-hidden>{entry.emoji} </span> : null}
+                            {entry.title}
+                          </Link>
+                        ) : (
+                          <span className="font-medium">
+                            {entry.emoji ? <span aria-hidden>{entry.emoji} </span> : null}
+                            {entry.title}
+                          </span>
+                        )}
+                        {entry.badges && entry.badges.length > 0 ? (
+                          <PlayerBadges badges={entry.badges} size="sm" />
+                        ) : null}
+                      </div>
                       {entry.subtitle ? (
                         <p className="text-muted-foreground text-xs">{entry.subtitle}</p>
                       ) : null}

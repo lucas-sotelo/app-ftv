@@ -20,10 +20,6 @@ import type { InvitationRow } from "@/lib/supabase/database.types";
 import { ROLE_LABELS } from "@/lib/permissions";
 import { formatDate } from "@/lib/utils/format";
 
-function inviteUrl(appUrl: string, code: string) {
-  return `${appUrl.replace(/\/$/, "")}/convite/${code}`;
-}
-
 function statusOf(invitation: InvitationRow): {
   label: string;
   variant: "default" | "danger" | "warning";
@@ -42,12 +38,10 @@ export function InvitationsPanel({
   invitations,
   groupId,
   slug,
-  appUrl,
 }: {
   invitations: InvitationRow[];
   groupId: string;
   slug: string;
-  appUrl: string;
 }) {
   const router = useRouter();
   const [role, setRole] = React.useState<"admin" | "member">("member");
@@ -114,7 +108,7 @@ export function InvitationsPanel({
                 toast.error(result.error);
                 return;
               }
-              await copy(inviteUrl(appUrl, result.data.code), "Link do convite copiado.");
+              await copy(result.data.code, "Código do convite copiado.");
               router.refresh();
             } finally {
               setPending(false);
@@ -130,7 +124,7 @@ export function InvitationsPanel({
         <EmptyState
           icon={<Link2 className="size-8" aria-hidden />}
           title="Nenhum convite gerado"
-          description="Gere um convite e mande o link para o pessoal do grupo."
+          description="Gere um convite e mande o código para o pessoal do grupo."
         />
       ) : (
         <ul className="flex flex-col gap-2">
@@ -160,8 +154,8 @@ export function InvitationsPanel({
                     <Button
                       variant="ghost"
                       size="icon"
-                      aria-label={`Copiar link do convite ${invitation.code}`}
-                      onClick={() => copy(inviteUrl(appUrl, invitation.code), "Link copiado.")}
+                      aria-label={`Copiar código do convite ${invitation.code}`}
+                      onClick={() => copy(invitation.code, "Código copiado.")}
                     >
                       <Copy aria-hidden />
                     </Button>

@@ -14,7 +14,7 @@ export function OnboardingCards({ initialCode }: { initialCode: string }) {
       <button
         type="button"
         onClick={() => setCreateDialogOpen(true)}
-        className="bg-primary text-primary-foreground hover:bg-primary/90 flex min-h-24 flex-col items-center justify-center gap-2 rounded-xl p-4 text-center shadow-sm transition-colors"
+        className="from-primary to-primary/80 text-primary-foreground flex min-h-24 flex-col items-center justify-center gap-2 rounded-2xl bg-gradient-to-br p-4 text-center shadow-sm transition-all duration-200 hover:scale-[1.02] hover:shadow-md"
       >
         <PlusCircle className="size-6" aria-hidden />
         <span className="text-sm font-semibold">Criar grupo</span>
@@ -23,7 +23,7 @@ export function OnboardingCards({ initialCode }: { initialCode: string }) {
       <button
         type="button"
         onClick={() => setJoinDialogOpen(true)}
-        className="border-border bg-card hover:bg-muted flex min-h-24 flex-col items-center justify-center gap-2 rounded-xl border p-4 text-center shadow-sm transition-colors"
+        className="border-border/50 bg-card flex min-h-24 flex-col items-center justify-center gap-2 rounded-2xl border p-4 text-center shadow-sm transition-all duration-200 hover:scale-[1.02] hover:shadow-md"
       >
         <Key className="text-primary size-6" aria-hidden />
         <span className="text-sm font-semibold">Entrar com código</span>

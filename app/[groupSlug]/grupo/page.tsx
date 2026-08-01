@@ -10,7 +10,6 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { getGroupContext, listGroupMembers, listInvitations } from "@/lib/data/groups";
 import { can, ROLE_LABELS } from "@/lib/permissions";
-import { getAppUrl } from "@/lib/supabase/env";
 import { createClient } from "@/lib/supabase/server";
 
 export const metadata: Metadata = { title: "Grupo" };
@@ -82,12 +81,7 @@ export default async function GroupPage({ params }: { params: Promise<{ groupSlu
               <CardTitle>Convites</CardTitle>
             </CardHeader>
             <CardContent>
-              <InvitationsPanel
-                invitations={invitations}
-                groupId={group.id}
-                slug={groupSlug}
-                appUrl={getAppUrl()}
-              />
+              <InvitationsPanel invitations={invitations} groupId={group.id} slug={groupSlug} />
             </CardContent>
           </Card>
 

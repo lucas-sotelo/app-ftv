@@ -314,6 +314,54 @@ export interface Database {
         Update: never;
         Relationships: [];
       };
+      badges: {
+        Row: {
+          id: string;
+          key: string;
+          label: string;
+          description: string;
+          icon: string;
+          created_at: string;
+        };
+        Insert: never;
+        Update: never;
+        Relationships: [];
+      };
+      player_badges: {
+        Row: {
+          id: string;
+          group_id: string;
+          player_id: string;
+          badge_id: string;
+          match_id: string | null;
+          awarded_at: string;
+        };
+        Insert: never;
+        Update: never;
+        Relationships: [
+          {
+            foreignKeyName: "player_badges_group_id_fkey";
+            columns: ["group_id"];
+            isOneToOne: false;
+            referencedRelation: "groups";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "player_badges_player_id_fkey";
+            columns: ["player_id"];
+            isOneToOne: false;
+            referencedRelation: "players";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "player_badges_badge_id_fkey";
+            columns: ["badge_id"];
+            isOneToOne: false;
+            referencedRelation: "badges";
+            referencedColumns: ["id"];
+          },
+        ];
+      };
     };
     Views: {
       v_valid_matches: {
@@ -437,6 +485,18 @@ export interface Database {
           underdog_prior_wins: number;
           favorite_prior_wins: number;
           prior_win_gap: number;
+        };
+        Relationships: [];
+      };
+      v_player_current_streak: {
+        Row: {
+          group_id: string;
+          player_id: string;
+          display_name: string;
+          avatar_url: string | null;
+          streak_type: "win" | "loss";
+          streak_length: number;
+          streak_end_at: string;
         };
         Relationships: [];
       };
@@ -633,6 +693,16 @@ export interface Database {
           last_session_played_on: string | null;
         }[];
       };
+      my_ranking_positions: {
+        Args: Record<string, never>;
+        Returns: {
+          group_id: string;
+          player_id: string;
+          position: number;
+          meets_min_attendance: boolean;
+          win_rate: number;
+        }[];
+      };
     };
     Enums: {
       group_role: GroupRole;
@@ -657,12 +727,15 @@ export type SessionRow = Tables<"sessions">;
 export type ProfileRow = Tables<"profiles">;
 export type InvitationRow = Tables<"group_invitations">;
 export type AuditRow = Tables<"audit_log">;
+export type BadgeRow = Tables<"badges">;
+export type PlayerBadgeRow = Tables<"player_badges">;
 
 export type PlayerStatRow = FnReturns<"stats_players">[number];
 export type PairStatRow = FnReturns<"stats_pairs">[number];
 export type PlayerH2HRow = FnReturns<"stats_player_head_to_head">[number];
 export type PairH2HRow = FnReturns<"stats_pair_head_to_head">[number];
 export type GroupOverviewRow = FnReturns<"group_overview">[number];
+export type MyRankingPositionRow = FnReturns<"my_ranking_positions">[number];
 
 export type DailyKingRow = Views<"v_daily_kings">;
 export type DailyLanternRow = Views<"v_daily_lanterns">;
@@ -670,3 +743,4 @@ export type PlayerStreakRow = Views<"v_player_streaks">;
 export type PairUnderdogRow = Views<"v_pair_underdogs">;
 export type MassacreRow = Views<"v_biggest_massacres">;
 export type IndividualUnderdogRow = Views<"v_individual_underdogs">;
+export type PlayerCurrentStreakRow = Views<"v_player_current_streak">;

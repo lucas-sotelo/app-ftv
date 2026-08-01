@@ -22,6 +22,27 @@ import { formatGames, formatLongDate, formatPlainDate, plainDateToDate } from "@
 export const metadata: Metadata = { title: "Partidas" };
 export const dynamic = "force-dynamic";
 
+// Cumulativo: "Carregar mais" pede PAGE_SIZE * página, então o efeito visual
+// é de acréscimo, sem cortar uma rodada ao meio de forma permanente.
+const PAGE_SIZE = 30;
+
+function currentPage(params: SearchParamsInput): number {
+  const raw = Array.isArray(params.pagina) ? params.pagina[0] : params.pagina;
+  const page = Number(raw);
+  return Number.isFinite(page) && page >= 1 ? Math.floor(page) : 1;
+}
+
+function loadMoreHref(basePath: string, params: SearchParamsInput, nextPage: number): string {
+  const search = new URLSearchParams();
+  for (const [name, value] of Object.entries(params)) {
+    if (name === "pagina") continue;
+    const single = Array.isArray(value) ? value[0] : value;
+    if (single) search.set(name, single);
+  }
+  search.set("pagina", String(nextPage));
+  return `${basePath}?${search.toString()}`;
+}
+
 export default async function MatchesPage({
   params,
   searchParams,
@@ -32,6 +53,8 @@ export default async function MatchesPage({
   const { groupSlug } = await params;
   const rawSearchParams = await searchParams;
   const filters = parseStatsFilters(rawSearchParams);
+  const page = currentPage(rawSearchParams);
+  const matchLimit = page * PAGE_SIZE;
 
   const supabase = await createClient();
   const context = await getGroupContext(supabase, groupSlug);
@@ -41,7 +64,7 @@ export default async function MatchesPage({
   const isAdmin = can.manageMatches(role);
   const period = resolveFilterPeriod(filters, group.timezone);
 
-  const [matches, sessions, players] = await Promise.all([
+  const [matchesFetched, sessions, players] = await Promise.all([
     listMatches(supabase, group.id, {
       from: period.from?.toISOString() ?? null,
       to: period.to?.toISOString() ?? null,
@@ -49,10 +72,15 @@ export default async function MatchesPage({
       sessionId: filters.sessionId,
       // Admin enxerga anuladas/excluídas para poder restaurar.
       includeRemoved: isAdmin,
+      // +1 só para saber se há mais itens, sem exibi-lo.
+      limit: matchLimit + 1,
     }),
     listSessions(supabase, group.id),
     listPlayers(supabase, group.id),
   ]);
+
+  const hasMore = matchesFetched.length > matchLimit;
+  const matches = hasMore ? matchesFetched.slice(0, matchLimit) : matchesFetched;
 
   const grouped = groupMatchesBySession(matches, sessions, group.timezone);
   const countable = matches.filter((m) => m.status === "confirmed" && !m.deletedAt).length;
@@ -127,6 +155,13 @@ export default async function MatchesPage({
               </div>
             </section>
           ))}
+          {hasMore ? (
+            <Button asChild variant="outline" className="self-center">
+              <Link href={loadMoreHref(`/${groupSlug}/partidas`, rawSearchParams, page + 1)}>
+                Carregar mais
+              </Link>
+            </Button>
+          ) : null}
         </div>
       )}
     </div>

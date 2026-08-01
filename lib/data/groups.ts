@@ -1,4 +1,4 @@
-import type { GroupRole, GroupRow } from "@/lib/supabase/database.types";
+import type { GroupRole, GroupRow, MyRankingPositionRow } from "@/lib/supabase/database.types";
 import type { Client, GroupContext } from "./types";
 
 export interface UserGroup {
@@ -22,6 +22,20 @@ export async function listUserGroups(supabase: Client): Promise<UserGroup[]> {
     }))
     .filter((row): row is UserGroup => Boolean(row.group))
     .sort((a, b) => a.group.name.localeCompare(b.group.name, "pt-BR"));
+}
+
+/**
+ * Posição do usuário no ranking de cada grupo de que participa, numa única
+ * chamada (em vez de uma RPC por grupo). A posição e o boolean de
+ * elegibilidade já vêm prontos do banco — ver my_ranking_positions em
+ * supabase/migrations/20260701002000_my_ranking_and_current_streak.sql.
+ */
+export async function fetchMyRankingPositions(
+  supabase: Client,
+): Promise<Map<string, MyRankingPositionRow>> {
+  const { data, error } = await supabase.rpc("my_ranking_positions");
+  if (error) throw error;
+  return new Map((data ?? []).map((row) => [row.group_id, row]));
 }
 
 /**

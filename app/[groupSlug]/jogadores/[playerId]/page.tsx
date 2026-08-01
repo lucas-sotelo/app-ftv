@@ -2,12 +2,14 @@ import type { Metadata } from "next";
 import { notFound } from "next/navigation";
 import { FiltersBar } from "@/components/filters/filters-bar";
 import { MatchCard } from "@/components/matches/match-card";
+import { PlayerBadges } from "@/components/players/player-badges";
 import { HeadToHeadList, type HeadToHeadEntry } from "@/components/stats/head-to-head-list";
 import { RankingRow } from "@/components/stats/ranking-row";
 import { PlayerAvatar } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
 import { EmptyState } from "@/components/ui/empty-state";
 import { StatTile } from "@/components/ui/stat-tile";
+import { fetchPlayerBadges } from "@/lib/data/badges";
 import { getGroupContext } from "@/lib/data/groups";
 import { listMatches, listSessions } from "@/lib/data/matches";
 import { getPlayer, listPlayers } from "@/lib/data/players";
@@ -57,20 +59,22 @@ export default async function PlayerPage({
   const period = resolveFilterPeriod(filters, group.timezone);
   const query = { groupId: group.id, period, sessionId: filters.sessionId, minGames: 1 };
 
-  const [statsRows, pairRows, h2hRows, recent, allPlayers, sessions] = await Promise.all([
-    fetchPlayerStats(supabase, { ...query, playerId: null }),
-    fetchPairStats(supabase, { ...query, playerId }),
-    fetchPlayerHeadToHead(supabase, { ...query, perspectivePlayerId: playerId }),
-    listMatches(supabase, group.id, {
-      from: period.from?.toISOString() ?? null,
-      to: period.to?.toISOString() ?? null,
-      playerId,
-      sessionId: filters.sessionId,
-      limit: 10,
-    }),
-    listPlayers(supabase, group.id),
-    listSessions(supabase, group.id),
-  ]);
+  const [statsRows, pairRows, h2hRows, recent, allPlayers, sessions, playerBadges] =
+    await Promise.all([
+      fetchPlayerStats(supabase, { ...query, playerId: null }),
+      fetchPairStats(supabase, { ...query, playerId }),
+      fetchPlayerHeadToHead(supabase, { ...query, perspectivePlayerId: playerId }),
+      listMatches(supabase, group.id, {
+        from: period.from?.toISOString() ?? null,
+        to: period.to?.toISOString() ?? null,
+        playerId,
+        sessionId: filters.sessionId,
+        limit: 10,
+      }),
+      listPlayers(supabase, group.id),
+      listSessions(supabase, group.id),
+      fetchPlayerBadges(supabase, playerId),
+    ]);
 
   const stat = statsRows.find((row) => row.player_id === playerId);
   // Só as duplas de que este jogador participou.
@@ -104,6 +108,18 @@ export default async function PlayerPage({
             {!player.active ? <Badge variant="warning">Inativo</Badge> : null}
             {player.linked_user_id ? <Badge variant="primary">Tem conta no app</Badge> : null}
           </div>
+          {playerBadges.length > 0 ? (
+            <div className="mt-2">
+              <p className="text-muted-foreground text-xs font-semibold">Conquistas</p>
+              <PlayerBadges
+                badges={playerBadges.map((b) => ({
+                  icon: b.icon,
+                  label: b.label,
+                  description: b.description,
+                }))}
+              />
+            </div>
+          ) : null}
         </div>
       </header>
 

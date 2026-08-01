@@ -36,3 +36,19 @@ export async function getPlayersByIds(supabase: Client, ids: string[]): Promise<
   if (error) throw error;
   return data ?? [];
 }
+
+/** Jogador deste grupo vinculado ao usuário autenticado, se existir. */
+export async function getMyPlayer(
+  supabase: Client,
+  groupId: string,
+  userId: string,
+): Promise<PlayerRow | null> {
+  const { data, error } = await supabase
+    .from("players")
+    .select("*")
+    .eq("group_id", groupId)
+    .eq("linked_user_id", userId)
+    .maybeSingle();
+  if (error) throw error;
+  return data;
+}
