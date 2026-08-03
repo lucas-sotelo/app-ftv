@@ -1,4 +1,9 @@
-import type { GroupRole, GroupRow, MyRankingPositionRow } from "@/lib/supabase/database.types";
+import type {
+  GlobalUserStatsRow,
+  GroupRole,
+  GroupRow,
+  MyRankingPositionRow,
+} from "@/lib/supabase/database.types";
 import type { Client, GroupContext } from "./types";
 
 export interface UserGroup {
@@ -36,6 +41,22 @@ export async function fetchMyRankingPositions(
   const { data, error } = await supabase.rpc("my_ranking_positions");
   if (error) throw error;
   return new Map((data ?? []).map((row) => [row.group_id, row]));
+}
+
+/**
+ * Estatísticas globais do usuário (partidas, vitórias, win rate e saldo),
+ * somando todos os jogadores vinculados a ele em todos os grupos — ver
+ * get_global_user_stats em supabase/migrations/20260803001000_global_user_stats.sql.
+ */
+export async function fetchGlobalUserStats(
+  supabase: Client,
+  userId: string,
+): Promise<GlobalUserStatsRow | null> {
+  const { data, error } = await supabase
+    .rpc("get_global_user_stats", { p_user_id: userId })
+    .maybeSingle();
+  if (error) throw error;
+  return data ?? null;
 }
 
 /**

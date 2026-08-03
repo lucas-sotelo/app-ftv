@@ -14,12 +14,12 @@ export default async function SignInPage({
   const { proximo } = await searchParams;
 
   return (
-    <Card className="shadow-lg">
+    <Card className="border-white/15 bg-white/10 text-white shadow-2xl backdrop-blur-xl">
       <CardContent className="pt-4">
         <Suspense fallback={null}>
           <SignInForm nextPath={proximo ?? null} />
         </Suspense>
-        <div className="text-muted-foreground mt-6 space-y-2 text-center text-sm">
+        <div className="mt-6 space-y-2 text-center text-sm text-white/70">
           <p>
             <Link href="/recuperar-senha" className="text-primary font-medium hover:underline">
               Esqueci minha senha

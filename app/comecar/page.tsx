@@ -2,10 +2,11 @@ import { ChevronRight, Trophy } from "lucide-react";
 import type { Metadata } from "next";
 import Link from "next/link";
 import { redirect } from "next/navigation";
+import { GlobalStatsOverview } from "@/components/home/global-stats-overview";
 import { HeroBanner } from "@/components/home/hero-banner";
 import { PlayerAvatar } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
-import { fetchMyRankingPositions, listUserGroups } from "@/lib/data/groups";
+import { fetchGlobalUserStats, fetchMyRankingPositions, listUserGroups } from "@/lib/data/groups";
 import { ROLE_LABELS } from "@/lib/permissions";
 import { createClient } from "@/lib/supabase/server";
 import { cn } from "@/lib/utils";
@@ -27,10 +28,11 @@ export default async function HomePage({
 
   const { convite } = await searchParams;
 
-  const [{ data: profile }, groups, myRankingPositions] = await Promise.all([
+  const [{ data: profile }, groups, myRankingPositions, globalStats] = await Promise.all([
     supabase.from("profiles").select("display_name, avatar_url").eq("id", user.id).maybeSingle(),
     listUserGroups(supabase),
     fetchMyRankingPositions(supabase),
+    fetchGlobalUserStats(supabase, user.id),
   ]);
 
   const greetingName = profile?.display_name || user.email?.split("@")[0] || "atleta";
@@ -55,6 +57,14 @@ export default async function HomePage({
           avatarUrl={profile?.avatar_url ?? null}
           profileHref={profileHref}
         />
+
+        {globalStats ? (
+          <GlobalStatsOverview
+            totalMatches={globalStats.total_matches}
+            globalWinRate={globalStats.global_win_rate}
+            globalSaldo={globalStats.global_saldo}
+          />
+        ) : null}
 
         <section className="flex flex-col gap-3">
           <h2 className="text-lg font-bold">Seus grupos</h2>

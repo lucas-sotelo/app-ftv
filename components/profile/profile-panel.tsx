@@ -56,12 +56,25 @@ export function ProfilePanel({
         .from("avatars")
         .upload(path, file, { upsert: true, contentType: file.type || undefined });
       if (uploadError) {
-        toast.error("Não foi possível enviar a foto.");
+        // RLS de storage.objects para o bucket "avatars" exige política de
+        // UPDATE além de INSERT (ver 20260701001400_add_player_avatars.sql)
+        // — sem ela, o erro chega aqui como violação de política.
+        const isRlsError = /row-level security|permission|policy/i.test(uploadError.message ?? "");
+        toast.error(
+          isRlsError
+            ? "Sem permissão para enviar fotos neste grupo. Fale com um admin."
+            : "Não foi possível enviar a foto. Tente novamente.",
+        );
         return;
       }
 
+      // Cache busting: a mesma foto de perfil pode ser recarregada em outra
+      // aba/dispositivo com o navegador ainda servindo a versão antiga do
+      // cache — o timestamp na query string força buscar a imagem nova.
       const { data } = supabase.storage.from("avatars").getPublicUrl(path);
-      const result = await updateProfileAvatarAction(data.publicUrl);
+      const cacheBustedUrl = `${data.publicUrl}?t=${Date.now()}`;
+
+      const result = await updateProfileAvatarAction(cacheBustedUrl);
       if (!result.ok) {
         toast.error(result.error);
         return;

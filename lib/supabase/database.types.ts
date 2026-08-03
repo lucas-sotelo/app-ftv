@@ -703,6 +703,15 @@ export interface Database {
           win_rate: number;
         }[];
       };
+      get_global_user_stats: {
+        Args: { p_user_id: string };
+        Returns: {
+          total_matches: number;
+          total_wins: number;
+          global_win_rate: number;
+          global_saldo: number;
+        }[];
+      };
     };
     Enums: {
       group_role: GroupRole;
@@ -736,6 +745,7 @@ export type PlayerH2HRow = FnReturns<"stats_player_head_to_head">[number];
 export type PairH2HRow = FnReturns<"stats_pair_head_to_head">[number];
 export type GroupOverviewRow = FnReturns<"group_overview">[number];
 export type MyRankingPositionRow = FnReturns<"my_ranking_positions">[number];
+export type GlobalUserStatsRow = FnReturns<"get_global_user_stats">[number];
 
 export type DailyKingRow = Views<"v_daily_kings">;
 export type DailyLanternRow = Views<"v_daily_lanterns">;
