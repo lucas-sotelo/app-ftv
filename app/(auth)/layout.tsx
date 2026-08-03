@@ -5,7 +5,7 @@ export default function AuthLayout({ children }: { children: ReactNode }) {
     <main className="relative flex min-h-dvh flex-1 items-center justify-center overflow-hidden">
       <div
         aria-hidden
-        className="bg-[url('/images/imagem_ftv_home.png')] md:bg-[url('/images/imagem_ftv.jpg')] fixed inset-0 z-0 h-full w-full bg-cover bg-center bg-no-repeat"
+        className="fixed inset-0 z-0 h-full w-full bg-[url('/images/imagem_ftv_home.png')] bg-cover bg-center bg-no-repeat md:bg-[url('/images/imagem_ftv.jpg')]"
       />
       <div aria-hidden className="absolute inset-0 z-10 bg-black/60 backdrop-blur-sm" />
 

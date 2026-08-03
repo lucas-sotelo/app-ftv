@@ -21,6 +21,15 @@ import { resolvePeriod } from "@/lib/utils/period";
 
 export const dynamic = "force-dynamic";
 
+/**
+ * Nota de corte da dupla nos Destaques: dupla com poucos jogos pode bater
+ * 100% de aproveitamento por acaso, então "Melhor dupla" exige pelo menos
+ * esse tanto de partidas antes de considerar o win rate — além de também
+ * respeitar o percentual mínimo de presença do grupo (mesma regra do
+ * ranking individual), quando o grupo tiver um configurado.
+ */
+const PAIR_HIGHLIGHT_MIN_GAMES = 3;
+
 export async function generateMetadata({
   params,
 }: {
@@ -61,13 +70,16 @@ export default async function DashboardPage({
     await Promise.all([
       fetchGroupOverview(supabase, group.id),
       fetchPlayerStats(supabase, statsQuery),
-      fetchPairStats(supabase, statsQuery),
+      fetchPairStats(supabase, { ...statsQuery, minGames: PAIR_HIGHLIGHT_MIN_GAMES }),
       listMatches(supabase, group.id, { limit: 5 }),
       listPlayers(supabase, group.id),
       user ? getMyPlayer(supabase, group.id, user.id) : Promise.resolve(null),
       fetchCurrentStreaks(supabase, group.id),
     ]);
 
+  // stats_pairs já devolve ordenado por win_rate desc, games desc dentro de
+  // quem bate o mínimo de presença — o find() só reforça a intenção e não
+  // depende cegamente da ordem vinda do banco.
   const leader = players.find((p) => p.meets_min_attendance);
   const leaderNickname = allPlayers.find((p) => p.id === leader?.player_id)?.nickname;
   const bestPair = pairs.find((p) => p.meets_min_attendance);
