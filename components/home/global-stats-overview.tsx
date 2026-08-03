@@ -21,18 +21,23 @@ export function GlobalStatsOverview({
   const saldoLabel = globalSaldo > 0 ? `+${formatInteger(globalSaldo)}` : `${formatInteger(globalSaldo)}`;
 
   return (
-    <div className="animate-in fade-in slide-in-from-top-4 grid grid-cols-3 gap-3 duration-500 delay-100 fill-mode-both">
-      <StatTile icon={Activity} label="Partidas" value={formatInteger(totalMatches)} />
-      <StatTile icon={Trophy} label="Win rate" value={formatPercent(globalWinRate)} />
-      <StatTile
-        icon={Flame}
-        label="Saldo"
-        value={saldoLabel}
-        valueClassName={cn(
-          globalSaldo > 0 && "text-court-600 dark:text-court-400",
-          globalSaldo < 0 && "text-destructive",
-        )}
-      />
+    <div>
+      <p className="mb-3 px-1 text-sm font-semibold tracking-wide text-slate-500 uppercase dark:text-slate-400">
+        Tá voando ou tá na lama? Se liga nos seus números gerais:
+      </p>
+      <div className="animate-in fade-in slide-in-from-top-4 grid grid-cols-3 gap-3 duration-500 delay-100 fill-mode-both">
+        <StatTile icon={Activity} label="Partidas" value={formatInteger(totalMatches)} />
+        <StatTile icon={Trophy} label="Aproveitamento" value={formatPercent(globalWinRate)} />
+        <StatTile
+          icon={Flame}
+          label="Saldo"
+          value={saldoLabel}
+          valueClassName={cn(
+            globalSaldo > 0 && "text-court-600 dark:text-court-400",
+            globalSaldo < 0 && "text-destructive",
+          )}
+        />
+      </div>
     </div>
   );
 }

@@ -3,12 +3,9 @@ import type { ReactNode } from "react";
 export default function AuthLayout({ children }: { children: ReactNode }) {
   return (
     <main className="relative flex min-h-dvh flex-1 items-center justify-center overflow-hidden">
-      {/* eslint-disable-next-line @next/next/no-img-element -- background full-screen fixo (position: fixed), incompatível com o position: absolute embutido no next/image `fill`. */}
-      <img
-        src="/images/imagem_ftv_home.png"
-        alt=""
+      <div
         aria-hidden
-        className="fixed inset-0 z-0 h-full w-full object-cover"
+        className="bg-[url('/images/imagem_ftv_home.png')] md:bg-[url('/images/imagem_ftv.jpg')] fixed inset-0 z-0 h-full w-full bg-cover bg-center bg-no-repeat"
       />
       <div aria-hidden className="absolute inset-0 z-10 bg-black/60 backdrop-blur-sm" />
 

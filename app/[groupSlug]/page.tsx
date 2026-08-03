@@ -44,7 +44,14 @@ export default async function DashboardPage({
 
   const { group, role } = context;
   const period = resolvePeriod("all", { timeZone: group.timezone });
-  const statsQuery = { groupId: group.id, period, minGames: 1 };
+  // Destaques (líder e melhor dupla) usam a mesma regra de elegibilidade do
+  // Ranking oficial: só entram quem bate o percentual mínimo de presença do
+  // grupo (group.min_attendance_percent), nunca só o maior win rate bruto.
+  const statsQuery = {
+    groupId: group.id,
+    period,
+    minAttendancePercent: group.min_attendance_percent,
+  };
 
   const {
     data: { user },
@@ -61,9 +68,9 @@ export default async function DashboardPage({
       fetchCurrentStreaks(supabase, group.id),
     ]);
 
-  const leader = players[0];
+  const leader = players.find((p) => p.meets_min_attendance);
   const leaderNickname = allPlayers.find((p) => p.id === leader?.player_id)?.nickname;
-  const bestPair = pairs[0];
+  const bestPair = pairs.find((p) => p.meets_min_attendance);
   const isAdmin = can.manageMatches(role);
 
   const myStat = myPlayer ? players.find((p) => p.player_id === myPlayer.id) : undefined;

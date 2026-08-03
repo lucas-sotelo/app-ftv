@@ -625,6 +625,7 @@ export interface Database {
           p_session_id?: string | null;
           p_player_id?: string | null;
           p_min_games?: number;
+          p_min_attendance_percent?: number;
         };
         Returns: {
           position: number;
@@ -635,6 +636,9 @@ export interface Database {
           wins: number;
           losses: number;
           win_rate: number;
+          total_group_matches: number;
+          attendance_percent: number;
+          meets_min_attendance: boolean;
         }[];
       };
       stats_player_head_to_head: {

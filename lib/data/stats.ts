@@ -36,13 +36,17 @@ export async function fetchPlayerStats(
   return data ?? [];
 }
 
-export async function fetchPairStats(supabase: Client, q: StatsQuery): Promise<PairStatRow[]> {
+export async function fetchPairStats(
+  supabase: Client,
+  q: StatsQuery & { minAttendancePercent?: number },
+): Promise<PairStatRow[]> {
   const { data, error } = await supabase.rpc("stats_pairs", {
     p_group_id: q.groupId,
     ...periodToRpcArgs(q.period),
     p_session_id: q.sessionId ?? null,
     p_player_id: q.playerId ?? null,
     p_min_games: q.minGames ?? 1,
+    p_min_attendance_percent: q.minAttendancePercent ?? 0,
   });
   if (error) throw error;
   return data ?? [];
