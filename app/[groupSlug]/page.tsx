@@ -22,13 +22,16 @@ import { resolvePeriod } from "@/lib/utils/period";
 export const dynamic = "force-dynamic";
 
 /**
- * Nota de corte da dupla nos Destaques: dupla com poucos jogos pode bater
- * 100% de aproveitamento por acaso, então "Melhor dupla" exige pelo menos
- * esse tanto de partidas antes de considerar o win rate — além de também
- * respeitar o percentual mínimo de presença do grupo (mesma regra do
- * ranking individual), quando o grupo tiver um configurado.
+ * Nota de corte da dupla nos Destaques: fixo em 10% dos jogos do grupo,
+ * independente do group.min_attendance_percent (esse é calibrado para
+ * presença INDIVIDUAL — um jogador comum aparece em boa parte das rodadas.
+ * Uma dupla específica, não: cada partida se reparte entre várias
+ * combinações possíveis de parceiro, então o percentual por dupla é
+ * naturalmente muito menor. Reusar o mesmo corte do individual (ex.: 25%)
+ * deixava só a dupla com mais jogos elegível, mesmo com win rate pior —
+ * exatamente o bug reportado ("Melhor dupla" saindo pelo volume de jogos).
  */
-const PAIR_HIGHLIGHT_MIN_GAMES = 3;
+const PAIR_HIGHLIGHT_MIN_ATTENDANCE_PERCENT = 10;
 
 export async function generateMetadata({
   params,
@@ -53,9 +56,11 @@ export default async function DashboardPage({
 
   const { group, role } = context;
   const period = resolvePeriod("all", { timeZone: group.timezone });
-  // Destaques (líder e melhor dupla) usam a mesma regra de elegibilidade do
-  // Ranking oficial: só entram quem bate o percentual mínimo de presença do
-  // grupo (group.min_attendance_percent), nunca só o maior win rate bruto.
+  // Líder individual usa a mesma regra de elegibilidade do Ranking oficial:
+  // só entra quem bate o percentual mínimo de presença do grupo
+  // (group.min_attendance_percent), nunca só o maior win rate bruto. Melhor
+  // dupla usa PAIR_HIGHLIGHT_MIN_ATTENDANCE_PERCENT em vez desse valor (ver
+  // comentário acima) — sobrescrito na chamada de fetchPairStats abaixo.
   const statsQuery = {
     groupId: group.id,
     period,
@@ -70,7 +75,10 @@ export default async function DashboardPage({
     await Promise.all([
       fetchGroupOverview(supabase, group.id),
       fetchPlayerStats(supabase, statsQuery),
-      fetchPairStats(supabase, { ...statsQuery, minGames: PAIR_HIGHLIGHT_MIN_GAMES }),
+      fetchPairStats(supabase, {
+        ...statsQuery,
+        minAttendancePercent: PAIR_HIGHLIGHT_MIN_ATTENDANCE_PERCENT,
+      }),
       listMatches(supabase, group.id, { limit: 5 }),
       listPlayers(supabase, group.id),
       user ? getMyPlayer(supabase, group.id, user.id) : Promise.resolve(null),
