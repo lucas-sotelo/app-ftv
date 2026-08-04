@@ -1,3 +1,4 @@
+import { cache } from "react";
 import type {
   GlobalUserStatsRow,
   GroupRole,
@@ -11,8 +12,15 @@ export interface UserGroup {
   role: GroupRole;
 }
 
-/** Grupos de que o usuário participa. A RLS já limita o que volta. */
-export async function listUserGroups(supabase: Client): Promise<UserGroup[]> {
+/**
+ * Grupos de que o usuário participa. A RLS já limita o que volta.
+ *
+ * Memoizado por requisição: layout e página chamam essa função
+ * independentemente na mesma requisição (ex.: /perfil).
+ */
+export const listUserGroups = cache(async function listUserGroups(
+  supabase: Client,
+): Promise<UserGroup[]> {
   const { data, error } = await supabase
     .from("group_members")
     .select("role, groups!inner(*)")
@@ -27,7 +35,7 @@ export async function listUserGroups(supabase: Client): Promise<UserGroup[]> {
     }))
     .filter((row): row is UserGroup => Boolean(row.group))
     .sort((a, b) => a.group.name.localeCompare(b.group.name, "pt-BR"));
-}
+});
 
 /**
  * Posição do usuário no ranking de cada grupo de que participa, numa única
@@ -62,8 +70,12 @@ export async function fetchGlobalUserStats(
 /**
  * Grupo pelo slug + papel do usuário. Devolve null quando o grupo não existe
  * OU quando o usuário não é membro — de fora, os dois casos são iguais.
+ *
+ * Memoizado por requisição: layout, generateMetadata e página chamam essa
+ * função independentemente na mesma requisição em quase todas as rotas de
+ * grupo — sem cache() isso multiplicava round-trips ao Supabase por tela.
  */
-export async function getGroupContext(
+export const getGroupContext = cache(async function getGroupContext(
   supabase: Client,
   slug: string,
 ): Promise<GroupContext | null> {
@@ -88,7 +100,7 @@ export async function getGroupContext(
   if (!role) return null;
 
   return { group, role };
-}
+});
 
 export interface GroupMemberEntry {
   userId: string;

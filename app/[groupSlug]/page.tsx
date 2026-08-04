@@ -15,7 +15,7 @@ import { getMyPlayer, listPlayers } from "@/lib/data/players";
 import { fetchCurrentStreaks } from "@/lib/data/resenha";
 import { fetchGroupOverview, fetchPairStats, fetchPlayerStats } from "@/lib/data/stats";
 import { can } from "@/lib/permissions";
-import { createClient } from "@/lib/supabase/server";
+import { createClient, getCurrentUser } from "@/lib/supabase/server";
 import { formatPlainDate, playerLabel } from "@/lib/utils/format";
 import { resolvePeriod } from "@/lib/utils/period";
 
@@ -67,9 +67,7 @@ export default async function DashboardPage({
     minAttendancePercent: group.min_attendance_percent,
   };
 
-  const {
-    data: { user },
-  } = await supabase.auth.getUser();
+  const user = await getCurrentUser(supabase);
 
   const [overview, players, pairs, recent, allPlayers, myPlayer, currentStreaks] =
     await Promise.all([

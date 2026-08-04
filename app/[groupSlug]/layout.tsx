@@ -9,7 +9,7 @@ import { Button } from "@/components/ui/button";
 import { InstallPrompt } from "@/components/pwa/install-prompt";
 import { GroupRealtime } from "@/components/realtime/group-realtime";
 import { getGroupContext, listUserGroups } from "@/lib/data/groups";
-import { createClient } from "@/lib/supabase/server";
+import { createClient, getCurrentUser } from "@/lib/supabase/server";
 import GroupNotFound from "./not-found";
 
 export const dynamic = "force-dynamic";
@@ -24,9 +24,7 @@ export default async function GroupLayout({
   const { groupSlug } = await params;
   const supabase = await createClient();
 
-  const {
-    data: { user },
-  } = await supabase.auth.getUser();
+  const user = await getCurrentUser(supabase);
   if (!user) redirect(`/entrar?proximo=${encodeURIComponent(`/${groupSlug}`)}`);
 
   // getGroupContext devolve null tanto para grupo inexistente quanto para

@@ -10,7 +10,7 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { getGroupContext, listGroupMembers, listInvitations } from "@/lib/data/groups";
 import { can, ROLE_LABELS } from "@/lib/permissions";
-import { createClient } from "@/lib/supabase/server";
+import { createClient, getCurrentUser } from "@/lib/supabase/server";
 
 export const metadata: Metadata = { title: "Grupo" };
 export const dynamic = "force-dynamic";
@@ -19,12 +19,10 @@ export default async function GroupPage({ params }: { params: Promise<{ groupSlu
   const { groupSlug } = await params;
   const supabase = await createClient();
 
-  const [
-    {
-      data: { user },
-    },
-    context,
-  ] = await Promise.all([supabase.auth.getUser(), getGroupContext(supabase, groupSlug)]);
+  const [user, context] = await Promise.all([
+    getCurrentUser(supabase),
+    getGroupContext(supabase, groupSlug),
+  ]);
   if (!context || !user) notFound();
 
   const { group, role } = context;

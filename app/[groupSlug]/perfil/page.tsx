@@ -4,7 +4,7 @@ import { ProfilePanel } from "@/components/profile/profile-panel";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { getGroupContext, listUserGroups } from "@/lib/data/groups";
 import { ROLE_LABELS } from "@/lib/permissions";
-import { createClient } from "@/lib/supabase/server";
+import { createClient, getCurrentUser } from "@/lib/supabase/server";
 
 export const metadata: Metadata = { title: "Perfil" };
 export const dynamic = "force-dynamic";
@@ -13,12 +13,10 @@ export default async function ProfilePage({ params }: { params: Promise<{ groupS
   const { groupSlug } = await params;
   const supabase = await createClient();
 
-  const [
-    {
-      data: { user },
-    },
-    context,
-  ] = await Promise.all([supabase.auth.getUser(), getGroupContext(supabase, groupSlug)]);
+  const [user, context] = await Promise.all([
+    getCurrentUser(supabase),
+    getGroupContext(supabase, groupSlug),
+  ]);
   if (!context || !user) notFound();
 
   const [{ data: profile }, rawGroups] = await Promise.all([
