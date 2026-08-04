@@ -58,10 +58,15 @@ export default async function PlayerPage({
 
   const period = resolveFilterPeriod(filters, group.timezone);
   const query = { groupId: group.id, period, sessionId: filters.sessionId, minGames: 1 };
+  // A posição no card do perfil precisa da mesma regra de elegibilidade do
+  // ranking principal (min_attendance_percent), senão diverge da tela de
+  // estatísticas: sem isso, stats_players usa 0% e trata todo mundo (até
+  // aspirantes) como se estivesse na lista principal.
+  const playerStatsQuery = { ...query, minAttendancePercent: group.min_attendance_percent };
 
   const [statsRows, pairRows, h2hRows, recent, allPlayers, sessions, playerBadges] =
     await Promise.all([
-      fetchPlayerStats(supabase, { ...query, playerId: null }),
+      fetchPlayerStats(supabase, { ...playerStatsQuery, playerId: null }),
       fetchPairStats(supabase, { ...query, playerId }),
       fetchPlayerHeadToHead(supabase, { ...query, perspectivePlayerId: playerId }),
       listMatches(supabase, group.id, {
@@ -144,8 +149,12 @@ export default async function PlayerPage({
             />
             <StatTile
               label="Posição no ranking"
-              value={`${stat.position}º`}
-              detail="entre quem jogou no período"
+              value={stat.meets_min_attendance ? `${stat.position}º` : "Aspirante"}
+              detail={
+                stat.meets_min_attendance
+                  ? "entre quem jogou no período"
+                  : `${Math.round(stat.attendance_percent)}% de presença · abaixo do mínimo`
+              }
             />
             <StatTile label="Vitórias" value={stat.wins} />
             <StatTile label="Derrotas" value={stat.losses} />
