@@ -3,6 +3,7 @@ import type {
   PairH2HRow,
   PairStatRow,
   PlayerH2HRow,
+  PlayerMonthlyStatRow,
   PlayerStatRow,
 } from "@/lib/supabase/database.types";
 import type { ResolvedPeriod } from "@/lib/utils/period";
@@ -89,4 +90,27 @@ export async function fetchGroupOverview(
   const { data, error } = await supabase.rpc("group_overview", { p_group_id: groupId });
   if (error) throw error;
   return data?.[0] ?? null;
+}
+
+/**
+ * Uma linha por jogador por mês civil (fuso do grupo), já ordenada por
+ * month_start desc e win_rate desc dentro do mês — base do histórico de
+ * Campeão/Lanterna do mês. Ver v_player_monthly_stats em
+ * supabase/migrations/20260831205641_player_monthly_stats.sql.
+ */
+export async function fetchPlayerMonthlyStats(
+  supabase: Client,
+  groupId: string,
+): Promise<PlayerMonthlyStatRow[]> {
+  const { data, error } = await supabase
+    .from("v_player_monthly_stats")
+    .select("*")
+    .eq("group_id", groupId)
+    .order("month_start", { ascending: false })
+    .order("win_rate", { ascending: false })
+    .order("games", { ascending: false })
+    .order("wins", { ascending: false })
+    .order("display_name", { ascending: true });
+  if (error) throw error;
+  return data ?? [];
 }

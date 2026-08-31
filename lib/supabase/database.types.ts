@@ -499,6 +499,24 @@ export interface Database {
         };
         Relationships: [];
       };
+      v_player_monthly_stats: {
+        Row: {
+          group_id: string;
+          player_id: string;
+          display_name: string;
+          nickname: string | null;
+          avatar_url: string | null;
+          month_start: string;
+          games: number;
+          wins: number;
+          losses: number;
+          win_rate: number;
+          total_month_matches: number;
+          attendance_percent: number;
+          meets_min_attendance: boolean;
+        };
+        Relationships: [];
+      };
     };
     Functions: {
       create_group_with_owner: {
@@ -757,3 +775,4 @@ export type PairUnderdogRow = Views<"v_pair_underdogs">;
 export type MassacreRow = Views<"v_biggest_massacres">;
 export type IndividualUnderdogRow = Views<"v_individual_underdogs">;
 export type PlayerSunNightTotalsRow = Views<"v_player_sun_night_totals">;
+export type PlayerMonthlyStatRow = Views<"v_player_monthly_stats">;

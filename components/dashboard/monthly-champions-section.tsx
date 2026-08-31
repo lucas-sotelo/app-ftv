@@ -1,19 +1,20 @@
-import { Award } from "lucide-react";
-import { RankingRow } from "@/components/stats/ranking-row";
+import { ArrowRight, Award } from "lucide-react";
+import Link from "next/link";
+import { MonthlyChampionCard } from "@/components/dashboard/monthly-champion-card";
+import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
-import { listPlayers } from "@/lib/data/players";
-import { fetchPlayerStats } from "@/lib/data/stats";
+import { fetchPlayerMonthlyStats } from "@/lib/data/stats";
 import type { GroupRow } from "@/lib/data/types";
+import { pickMonthlyChampions } from "@/lib/stats/monthly-champions";
 import { createClient } from "@/lib/supabase/server";
-import { playerLabel } from "@/lib/utils/format";
-import { resolvePeriod } from "@/lib/utils/period";
+
+const HOME_PREVIEW_MONTHS = 3;
 
 /**
- * Campeão e perdedor do mês corrente: mesmo critério de elegibilidade do
- * ranking oficial (group.min_attendance_percent), só que aplicado ao
- * período do mês — stats_players já devolve attendance_percent/meets_min_attendance
- * calculados sobre o total de partidas DO PERÍODO filtrado, então basta
- * reusar a RPC com period="month".
+ * Prévia da home: últimos meses com Campeão/Lanterna, mais recente primeiro.
+ * O histórico completo mora em /[groupSlug]/campeoes-do-mes — mesmo padrão
+ * de "Últimas partidas" -> "Ver todas" para não deixar a home crescendo sem
+ * limite conforme o grupo acumula meses.
  */
 export async function MonthlyChampionsSection({
   group,
@@ -23,63 +24,31 @@ export async function MonthlyChampionsSection({
   groupSlug: string;
 }) {
   const supabase = await createClient();
-  const period = resolvePeriod("month", { timeZone: group.timezone });
+  const rows = await fetchPlayerMonthlyStats(supabase, group.id);
+  const months = pickMonthlyChampions(rows);
+  if (months.length === 0) return null;
 
-  const [rows, players] = await Promise.all([
-    fetchPlayerStats(supabase, {
-      groupId: group.id,
-      period,
-      minAttendancePercent: group.min_attendance_percent,
-    }),
-    listPlayers(supabase, group.id),
-  ]);
-
-  // stats_players devolve em ordem de win_rate desc dentro de quem bate o
-  // mínimo de presença — o primeiro elegível é o campeão, o último é o
-  // perdedor do mês.
-  const eligible = rows.filter((r) => r.meets_min_attendance);
-  if (eligible.length === 0) return null;
-
-  const nicknameByPlayerId = new Map(players.map((p) => [p.id, p.nickname]));
-  const champion = eligible[0];
-  const loserCandidate = eligible[eligible.length - 1];
-  const loser = loserCandidate.player_id !== champion.player_id ? loserCandidate : null;
+  const preview = months.slice(0, HOME_PREVIEW_MONTHS);
 
   return (
-    <section aria-labelledby="campeoes-mes" className="flex flex-col gap-2">
-      <h2 id="campeoes-mes" className="flex items-center gap-1.5 text-sm font-semibold">
-        <Award className="text-court-600 size-4" aria-hidden />
-        Campeões do mês
-      </h2>
-      <RankingRow
-        position={champion.position}
-        title={playerLabel(champion.display_name, nicknameByPlayerId.get(champion.player_id))}
-        subtitle="Campeão do mês"
-        href={`/${groupSlug}/jogadores/${champion.player_id}`}
-        avatarSeed={champion.player_id}
-        avatarUrl={champion.avatar_url}
-        games={champion.games}
-        wins={champion.wins}
-        losses={champion.losses}
-        winRate={champion.win_rate}
-        emoji="🏆"
-        highlight
-      />
-      {loser ? (
-        <RankingRow
-          position={loser.position}
-          title={playerLabel(loser.display_name, nicknameByPlayerId.get(loser.player_id))}
-          subtitle="Perdedor do mês"
-          href={`/${groupSlug}/jogadores/${loser.player_id}`}
-          avatarSeed={loser.player_id}
-          avatarUrl={loser.avatar_url}
-          games={loser.games}
-          wins={loser.wins}
-          losses={loser.losses}
-          winRate={loser.win_rate}
-          emoji="🍂"
-        />
-      ) : null}
+    <section aria-labelledby="campeoes-mes" className="flex flex-col gap-3">
+      <div className="flex items-center justify-between">
+        <h2 id="campeoes-mes" className="flex items-center gap-1.5 text-sm font-semibold">
+          <Award className="text-court-600 size-4" aria-hidden />
+          Campeões do mês
+        </h2>
+        {months.length > HOME_PREVIEW_MONTHS ? (
+          <Button asChild variant="ghost" size="sm">
+            <Link href={`/${groupSlug}/campeoes-do-mes`}>
+              Ver todos os meses
+              <ArrowRight aria-hidden />
+            </Link>
+          </Button>
+        ) : null}
+      </div>
+      {preview.map((entry) => (
+        <MonthlyChampionCard key={entry.monthStart} entry={entry} groupSlug={groupSlug} />
+      ))}
     </section>
   );
 }

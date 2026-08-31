@@ -36,6 +36,27 @@ export function formatPlainDate(isoDate: string): string {
   return `${day}/${month}/${year}`;
 }
 
+const MONTH_NAMES_PT_BR = [
+  "Janeiro",
+  "Fevereiro",
+  "Março",
+  "Abril",
+  "Maio",
+  "Junho",
+  "Julho",
+  "Agosto",
+  "Setembro",
+  "Outubro",
+  "Novembro",
+  "Dezembro",
+];
+
+/** "2026-08-01" (mês já bucketizado pelo banco) -> "Agosto de 2026". */
+export function formatMonthYear(isoDate: string): string {
+  const [year, month] = isoDate.split("-").map(Number);
+  return `${MONTH_NAMES_PT_BR[month - 1]} de ${year}`;
+}
+
 export function plainDateToDate(isoDate: string, timeZone = DEFAULT_TIMEZONE): Date {
   const [year, month, day] = isoDate.split("-").map(Number);
   return new Date(new TZDate(year, month - 1, day, 12, 0, 0, timeZone).getTime());
