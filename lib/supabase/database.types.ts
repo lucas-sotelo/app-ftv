@@ -488,15 +488,14 @@ export interface Database {
         };
         Relationships: [];
       };
-      v_player_current_streak: {
+      v_player_sun_night_totals: {
         Row: {
           group_id: string;
           player_id: string;
           display_name: string;
           avatar_url: string | null;
-          streak_type: "win" | "loss";
-          streak_length: number;
-          streak_end_at: string;
+          sunny_days: number;
+          night_days: number;
         };
         Relationships: [];
       };
@@ -757,4 +756,4 @@ export type PlayerStreakRow = Views<"v_player_streaks">;
 export type PairUnderdogRow = Views<"v_pair_underdogs">;
 export type MassacreRow = Views<"v_biggest_massacres">;
 export type IndividualUnderdogRow = Views<"v_individual_underdogs">;
-export type PlayerCurrentStreakRow = Views<"v_player_current_streak">;
+export type PlayerSunNightTotalsRow = Views<"v_player_sun_night_totals">;

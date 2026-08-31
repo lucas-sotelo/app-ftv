@@ -39,17 +39,23 @@ function PlayerColumn({
   );
 }
 
-export function DailyKings({ kings, lanterns }: { kings: DailyKingRow[]; lanterns: DailyLanternRow[] }) {
+export function DailyKings({
+  kings,
+  lanterns,
+}: {
+  kings: DailyKingRow[];
+  lanterns: DailyLanternRow[];
+}) {
   if (kings.length === 0 && lanterns.length === 0) {
     return (
       <Card>
         <CardHeader>
-          <CardTitle>Reizinho 👑 / Lanterna 💩</CardTitle>
+          <CardTitle>Campeão do dia 👑 / Lanterna 💩</CardTitle>
         </CardHeader>
         <CardContent>
           <EmptyState
             title="Ainda não teve dia de jogo"
-            description="Assim que rolar uma partida, o Reizinho e a Lanterna do dia aparecem aqui."
+            description="Assim que rolar uma partida, o Campeão do dia e a Lanterna do dia aparecem aqui."
           />
         </CardContent>
       </Card>
@@ -59,16 +65,16 @@ export function DailyKings({ kings, lanterns }: { kings: DailyKingRow[]; lantern
   return (
     <Card>
       <CardHeader>
-        <CardTitle>Reizinho 👑 / Lanterna 💩</CardTitle>
+        <CardTitle>Campeão do dia 👑 / Lanterna 💩</CardTitle>
       </CardHeader>
       <CardContent className="grid grid-cols-2 gap-3">
         <PlayerColumn
-          label="Reizinho 👑"
+          label="Campeão do dia 👑"
           players={kings.map((row) => ({
             playerId: row.player_id,
             displayName: row.display_name,
             avatarUrl: row.avatar_url,
-            countLabel: `${row.times_as_king}x Reizinho`,
+            countLabel: `${row.times_as_king}x Campeão do dia`,
           }))}
         />
         <PlayerColumn

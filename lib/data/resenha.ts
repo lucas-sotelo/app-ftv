@@ -3,8 +3,8 @@ import type {
   DailyLanternRow,
   MassacreRow,
   PairUnderdogRow,
-  PlayerCurrentStreakRow,
   PlayerStreakRow,
+  PlayerSunNightTotalsRow,
 } from "@/lib/supabase/database.types";
 import type { Client } from "./types";
 
@@ -49,7 +49,10 @@ export async function fetchPlayerStreaks(
   supabase: Client,
   groupId: string,
 ): Promise<PlayerStreakRow[]> {
-  const { data, error } = await supabase.from("v_player_streaks").select("*").eq("group_id", groupId);
+  const { data, error } = await supabase
+    .from("v_player_streaks")
+    .select("*")
+    .eq("group_id", groupId);
   if (error) throw error;
   return data ?? [];
 }
@@ -69,13 +72,18 @@ export async function fetchPairUnderdogs(
   return data ?? [];
 }
 
-/** Sequência em andamento (não a maior histórica) de cada jogador. */
-export async function fetchCurrentStreaks(
+/**
+ * Totais históricos de Dias de Sol (mais vitórias que derrotas no dia) e
+ * Dias de Noite (mais derrotas que vitórias no dia) de cada jogador — ver
+ * v_player_sun_night_totals em
+ * supabase/migrations/20260831204107_player_sun_night_totals.sql.
+ */
+export async function fetchPlayerSunNightTotals(
   supabase: Client,
   groupId: string,
-): Promise<PlayerCurrentStreakRow[]> {
+): Promise<PlayerSunNightTotalsRow[]> {
   const { data, error } = await supabase
-    .from("v_player_current_streak")
+    .from("v_player_sun_night_totals")
     .select("*")
     .eq("group_id", groupId);
   if (error) throw error;
@@ -97,4 +105,3 @@ export async function fetchBiggestMassacres(
   if (error) throw error;
   return data ?? [];
 }
-

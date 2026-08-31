@@ -1,37 +1,25 @@
-import { ArrowRight, CalendarDays, Plus, Trophy, Users, Volleyball } from "lucide-react";
 import type { Metadata } from "next";
-import Link from "next/link";
+import { Suspense } from "react";
 import { notFound } from "next/navigation";
-import { PersonalHighlightCard } from "@/components/dashboard/personal-highlight-card";
-import { MatchCard } from "@/components/matches/match-card";
-import { RankingRow } from "@/components/stats/ranking-row";
+import {
+  DashboardHighlights,
+  DashboardHighlightsSkeleton,
+} from "@/components/dashboard/dashboard-highlights";
+import {
+  MonthlyChampionsSection,
+  MonthlyChampionsSkeleton,
+} from "@/components/dashboard/monthly-champions-section";
+import {
+  RecentMatchesSection,
+  RecentMatchesSkeleton,
+} from "@/components/dashboard/recent-matches-section";
 import { PlayerAvatar } from "@/components/ui/avatar";
-import { Button } from "@/components/ui/button";
-import { EmptyState } from "@/components/ui/empty-state";
-import { StatTile } from "@/components/ui/stat-tile";
 import { getGroupContext } from "@/lib/data/groups";
-import { listMatches } from "@/lib/data/matches";
-import { getMyPlayer, listPlayers } from "@/lib/data/players";
-import { fetchCurrentStreaks } from "@/lib/data/resenha";
-import { fetchGroupOverview, fetchPairStats, fetchPlayerStats } from "@/lib/data/stats";
 import { can } from "@/lib/permissions";
-import { createClient, getCurrentUser } from "@/lib/supabase/server";
-import { formatPlainDate, playerLabel } from "@/lib/utils/format";
+import { createClient } from "@/lib/supabase/server";
 import { resolvePeriod } from "@/lib/utils/period";
 
 export const dynamic = "force-dynamic";
-
-/**
- * Nota de corte da dupla nos Destaques: fixo em 10% dos jogos do grupo,
- * independente do group.min_attendance_percent (esse é calibrado para
- * presença INDIVIDUAL — um jogador comum aparece em boa parte das rodadas.
- * Uma dupla específica, não: cada partida se reparte entre várias
- * combinações possíveis de parceiro, então o percentual por dupla é
- * naturalmente muito menor. Reusar o mesmo corte do individual (ex.: 25%)
- * deixava só a dupla com mais jogos elegível, mesmo com win rate pior —
- * exatamente o bug reportado ("Melhor dupla" saindo pelo volume de jogos).
- */
-const PAIR_HIGHLIGHT_MIN_ATTENDANCE_PERCENT = 10;
 
 export async function generateMetadata({
   params,
@@ -56,45 +44,8 @@ export default async function DashboardPage({
 
   const { group, role } = context;
   const period = resolvePeriod("all", { timeZone: group.timezone });
-  // Líder individual usa a mesma regra de elegibilidade do Ranking oficial:
-  // só entra quem bate o percentual mínimo de presença do grupo
-  // (group.min_attendance_percent), nunca só o maior win rate bruto. Melhor
-  // dupla usa PAIR_HIGHLIGHT_MIN_ATTENDANCE_PERCENT em vez desse valor (ver
-  // comentário acima) — sobrescrito na chamada de fetchPairStats abaixo.
-  const statsQuery = {
-    groupId: group.id,
-    period,
-    minAttendancePercent: group.min_attendance_percent,
-  };
-
-  const user = await getCurrentUser(supabase);
-
-  const [overview, players, pairs, recent, allPlayers, myPlayer, currentStreaks] =
-    await Promise.all([
-      fetchGroupOverview(supabase, group.id),
-      fetchPlayerStats(supabase, statsQuery),
-      fetchPairStats(supabase, {
-        ...statsQuery,
-        minAttendancePercent: PAIR_HIGHLIGHT_MIN_ATTENDANCE_PERCENT,
-      }),
-      listMatches(supabase, group.id, { limit: 5 }),
-      listPlayers(supabase, group.id),
-      user ? getMyPlayer(supabase, group.id, user.id) : Promise.resolve(null),
-      fetchCurrentStreaks(supabase, group.id),
-    ]);
-
-  // stats_pairs já devolve ordenado por win_rate desc, games desc dentro de
-  // quem bate o mínimo de presença — o find() só reforça a intenção e não
-  // depende cegamente da ordem vinda do banco.
-  const leader = players.find((p) => p.meets_min_attendance);
-  const leaderNickname = allPlayers.find((p) => p.id === leader?.player_id)?.nickname;
-  const bestPair = pairs.find((p) => p.meets_min_attendance);
+  const statsQuery = { groupId: group.id, period };
   const isAdmin = can.manageMatches(role);
-
-  const myStat = myPlayer ? players.find((p) => p.player_id === myPlayer.id) : undefined;
-  const myStreak = myPlayer
-    ? currentStreaks.find((s) => s.player_id === myPlayer.id)
-    : undefined;
 
   return (
     <div className="flex flex-col gap-5">
@@ -103,139 +54,30 @@ export default async function DashboardPage({
         <h1 className="min-w-0 truncate text-xl font-bold">{group.name}</h1>
       </div>
 
-      {myPlayer && myStat ? (
-        <PersonalHighlightCard
-          displayName={myPlayer.display_name}
-          nickname={myPlayer.nickname}
-          winRate={myStat.win_rate}
-          games={myStat.games}
-          wins={myStat.wins}
-          losses={myStat.losses}
-          streak={
-            myStreak ? { type: myStreak.streak_type, length: myStreak.streak_length } : null
-          }
+      {/* Duas seções independentes: cada uma libera assim que a sua própria
+          consulta responde, em vez de as duas ficarem presas atrás da mais
+          lenta das duas (como acontecia com o Promise.all único de antes). */}
+      <Suspense fallback={<DashboardHighlightsSkeleton isAdmin={isAdmin} />}>
+        <DashboardHighlights
+          group={group}
+          groupSlug={groupSlug}
+          statsQuery={statsQuery}
+          isAdmin={isAdmin}
         />
-      ) : null}
+      </Suspense>
 
-      {isAdmin ? (
-        <Button asChild size="lg" block className="shadow-sm">
-          <Link href={`/${groupSlug}/partidas/nova`}>
-            <Plus aria-hidden />
-            Registrar partida
-          </Link>
-        </Button>
-      ) : null}
+      <Suspense fallback={<MonthlyChampionsSkeleton />}>
+        <MonthlyChampionsSection group={group} groupSlug={groupSlug} />
+      </Suspense>
 
-      <section aria-label="Resumo do grupo" className="grid grid-cols-2 gap-2">
-        <StatTile
-          label="Partidas"
-          value={overview?.total_matches ?? 0}
-          icon={<Volleyball className="size-3.5" aria-hidden />}
-          detail={`${overview?.total_sessions ?? 0} rodadas`}
+      <Suspense fallback={<RecentMatchesSkeleton />}>
+        <RecentMatchesSection
+          groupId={group.id}
+          groupSlug={groupSlug}
+          timeZone={group.timezone}
+          isAdmin={isAdmin}
         />
-        <StatTile
-          label="Jogadores ativos"
-          value={overview?.active_players ?? 0}
-          icon={<Users className="size-3.5" aria-hidden />}
-          detail={`${overview?.total_players ?? 0} no total`}
-        />
-        <StatTile
-          label="Última rodada"
-          value={
-            overview?.last_session_played_on
-              ? formatPlainDate(overview.last_session_played_on)
-              : "—"
-          }
-          icon={<CalendarDays className="size-3.5" aria-hidden />}
-          className="col-span-2"
-          detail={overview?.last_played_at ? undefined : "Nenhuma partida registrada ainda"}
-        />
-      </section>
-
-      {leader || bestPair ? (
-        <section aria-labelledby="destaques" className="flex flex-col gap-2">
-          <h2 id="destaques" className="flex items-center gap-1.5 text-sm font-semibold">
-            <Trophy className="text-court-600 size-4" aria-hidden />
-            Destaques
-          </h2>
-          {leader ? (
-            <RankingRow
-              position={1}
-              title={playerLabel(leader.display_name, leaderNickname)}
-              subtitle="Líder individual"
-              href={`/${groupSlug}/jogadores/${leader.player_id}`}
-              avatarSeed={leader.player_id}
-              avatarUrl={leader.avatar_url}
-              games={leader.games}
-              wins={leader.wins}
-              losses={leader.losses}
-              winRate={leader.win_rate}
-              emoji={group.first_place_emoji}
-              highlight
-            />
-          ) : null}
-          {bestPair ? (
-            <RankingRow
-              position={1}
-              title={bestPair.player_names.join(" + ")}
-              subtitle="Melhor dupla"
-              href={`/${groupSlug}/duplas/${encodeURIComponent(bestPair.pair_key)}`}
-              games={bestPair.games}
-              wins={bestPair.wins}
-              losses={bestPair.losses}
-              winRate={bestPair.win_rate}
-              highlight
-            />
-          ) : null}
-          <Button asChild variant="ghost" size="sm" className="self-start">
-            <Link href={`/${groupSlug}/estatisticas`}>
-              Ver todas as estatísticas
-              <ArrowRight aria-hidden />
-            </Link>
-          </Button>
-        </section>
-      ) : null}
-
-      <section aria-labelledby="ultimas" className="flex flex-col gap-2">
-        <div className="flex items-center justify-between">
-          <h2 id="ultimas" className="text-sm font-semibold">
-            Últimas partidas
-          </h2>
-          {recent.length > 0 ? (
-            <Button asChild variant="ghost" size="sm">
-              <Link href={`/${groupSlug}/partidas`}>
-                Ver todas
-                <ArrowRight aria-hidden />
-              </Link>
-            </Button>
-          ) : null}
-        </div>
-
-        {recent.length === 0 ? (
-          <EmptyState
-            icon={<Volleyball className="size-8" aria-hidden />}
-            title="Nenhuma partida ainda"
-            description={
-              isAdmin
-                ? "Cadastre os jogadores e registre a primeira partida do grupo."
-                : "Assim que o pessoal registrar as partidas, elas aparecem aqui."
-            }
-            action={
-              isAdmin ? (
-                <Button asChild>
-                  <Link href={`/${groupSlug}/partidas/nova`}>Registrar partida</Link>
-                </Button>
-              ) : undefined
-            }
-          />
-        ) : (
-          <div className="flex flex-col gap-2">
-            {recent.map((match) => (
-              <MatchCard key={match.id} match={match} slug={groupSlug} timeZone={group.timezone} />
-            ))}
-          </div>
-        )}
-      </section>
+      </Suspense>
     </div>
   );
 }

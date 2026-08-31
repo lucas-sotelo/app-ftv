@@ -2,15 +2,10 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { formatGames, formatPercent } from "@/lib/utils/format";
 import { cn } from "@/lib/utils";
 
-export interface PersonalHighlightStreak {
-  type: "win" | "loss";
-  length: number;
-}
-
 /**
  * Resumo pessoal do jogador no topo da home do grupo. Server Component puro
- * — os números já vêm prontos do Postgres (stats_players / v_player_current_streak),
- * aqui só se formata e exibe.
+ * — os números já vêm prontos do Postgres (stats_players /
+ * v_player_sun_night_totals), aqui só se formata e exibe.
  */
 export function PersonalHighlightCard({
   displayName,
@@ -19,7 +14,8 @@ export function PersonalHighlightCard({
   games,
   wins,
   losses,
-  streak,
+  sunnyDays,
+  nightDays,
 }: {
   displayName: string;
   nickname?: string | null;
@@ -27,21 +23,22 @@ export function PersonalHighlightCard({
   games: number;
   wins: number;
   losses: number;
-  streak?: PersonalHighlightStreak | null;
+  sunnyDays: number;
+  nightDays: number;
 }) {
   const firstName = (nickname ?? displayName).split(" ")[0];
   const saldo = wins - losses;
   const saldoLabel = saldo > 0 ? `+${saldo}` : `${saldo}`;
 
   return (
-    <Card className="animate-in fade-in slide-in-from-bottom-4 duration-500 delay-150 fill-mode-both">
+    <Card className="animate-in fade-in slide-in-from-bottom-4 fill-mode-both delay-150 duration-500">
       <CardHeader>
         <CardTitle>Fala, {firstName}! 👋</CardTitle>
         <p className="text-muted-foreground text-sm">
           {formatGames(games)} no grupo — aqui está o seu resumo.
         </p>
       </CardHeader>
-      <CardContent className="grid grid-cols-3 gap-3">
+      <CardContent className="grid grid-cols-2 gap-3">
         <Metric label="Taxa de vitória" value={formatPercent(winRate)} />
         <Metric
           label="Saldo"
@@ -51,14 +48,8 @@ export function PersonalHighlightCard({
             saldo < 0 && "text-destructive",
           )}
         />
-        {streak ? (
-          <Metric
-            label={streak.type === "win" ? "Dias de Sol" : "Dias de Noite"}
-            value={`${streak.length} ${streak.type === "win" ? "☀️" : "🌙"}`}
-          />
-        ) : (
-          <Metric label="Jogos" value={games} />
-        )}
+        <Metric label="Dias de Sol ☀️" value={sunnyDays} />
+        <Metric label="Dias de Noite 🌙" value={nightDays} />
       </CardContent>
     </Card>
   );
@@ -80,4 +71,3 @@ function Metric({
     </div>
   );
 }
-

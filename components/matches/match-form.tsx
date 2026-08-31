@@ -49,6 +49,13 @@ export function MatchForm({
   const [players, setPlayers] = React.useState(initialPlayers);
   const [dialogSlot, setDialogSlot] = React.useState<SlotPath | null>(null);
   const [savedCount, setSavedCount] = React.useState(0);
+  // Incrementado a cada "Salvar e registrar outra": vira key dos TeamCard
+  // para forçar remontagem dos <Select> de jogador. reset() do
+  // react-hook-form já limpa o valor internamente, mas o Radix Select fica
+  // com o texto do jogador anterior visualmente preso (perde a sincronia ao
+  // voltar de um valor real para vazio) — só uma remontagem completa
+  // garante que o combobox mostre "Escolher jogador" de verdade.
+  const [formInstance, setFormInstance] = React.useState(0);
 
   const {
     control,
@@ -118,6 +125,7 @@ export function MatchForm({
         winningSide: null,
         notes: null,
       });
+      setFormInstance((n) => n + 1);
       router.refresh();
       return;
     }
@@ -143,6 +151,7 @@ export function MatchForm({
         </Field>
 
         <TeamCard
+          key={`A-${formInstance}`}
           title="Time A"
           side="A"
           winner={derivedWinner ?? winningSide ?? null}
@@ -155,6 +164,7 @@ export function MatchForm({
         />
 
         <TeamCard
+          key={`B-${formInstance}`}
           title="Time B"
           side="B"
           winner={derivedWinner ?? winningSide ?? null}
