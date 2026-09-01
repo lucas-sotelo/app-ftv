@@ -1,6 +1,6 @@
 "use client";
 
-import { TriangleAlert } from "lucide-react";
+import { ArrowDown, TriangleAlert } from "lucide-react";
 import { useEffect } from "react";
 import { Button } from "@/components/ui/button";
 
@@ -23,6 +23,10 @@ export default function GlobalError({
         Não foi possível carregar esta tela. Tente novamente; se persistir, verifique sua conexão.
       </p>
       <Button onClick={reset}>Tentar de novo</Button>
+      <p className="text-muted-foreground flex items-center gap-1.5 text-xs">
+        <ArrowDown className="size-3.5" aria-hidden />
+        Arraste a tela para baixo para recarregar o app
+      </p>
     </main>
   );
 }
