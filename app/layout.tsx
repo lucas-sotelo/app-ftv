@@ -3,6 +3,7 @@ import { Geist, Geist_Mono } from "next/font/google";
 import { ThemeProvider } from "next-themes";
 import Script from "next/script";
 import { Toaster } from "sonner";
+import { BootSplash } from "@/components/pwa/boot-splash";
 import { PwaUpdater } from "@/components/pwa/pwa-updater";
 import { ServiceWorkerProvider } from "@/components/pwa/service-worker-provider";
 import "./globals.css";
@@ -63,6 +64,7 @@ export default function RootLayout({ children }: Readonly<{ children: React.Reac
         {CAPTURE_INSTALL_PROMPT_SCRIPT}
       </Script>
       <body className="flex min-h-dvh flex-col antialiased">
+        <BootSplash />
         <ThemeProvider
           attribute="class"
           defaultTheme="system"

@@ -207,3 +207,19 @@
     animation: none;
   }
 }
+
+@keyframes app-spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+.ball-spin {
+  animation: app-spin 1.1s linear infinite;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .ball-spin {
+    animation: none;
+  }
+}

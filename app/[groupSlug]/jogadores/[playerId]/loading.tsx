@@ -1,8 +1,12 @@
+import { BallSpinner } from "@/components/ui/ball-spinner";
 import { ListSkeleton, Skeleton } from "@/components/ui/skeleton";
 
 export default function PlayerLoading() {
   return (
     <div className="flex flex-col gap-5">
+      <div className="flex justify-center py-1">
+        <BallSpinner />
+      </div>
       <div className="flex items-center gap-3">
         <Skeleton className="size-14 rounded-full" />
         <Skeleton className="h-6 w-40" />
