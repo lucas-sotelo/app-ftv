@@ -21,7 +21,7 @@
  * aparelho. Ver README, "Decisões de arquitetura".
  */
 
-const VERSION = "v1";
+const VERSION = "v2";
 const STATIC_CACHE = `ftv-static-${VERSION}`;
 const PAGES_CACHE = `ftv-pages-${VERSION}`;
 const OFFLINE_URL = "/offline";

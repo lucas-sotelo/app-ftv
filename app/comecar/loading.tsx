@@ -1,13 +1,9 @@
-import { BallSpinner } from "@/components/ui/ball-spinner";
 import { Skeleton } from "@/components/ui/skeleton";
 
 export default function HomeLoading() {
   return (
     <div className="dark:bg-background flex flex-1 flex-col bg-stone-50">
       <main className="mx-auto flex w-full max-w-3xl flex-1 flex-col gap-6 px-4 py-6">
-        <div className="flex justify-center py-1">
-          <BallSpinner />
-        </div>
         <Skeleton className="aspect-video w-full rounded-[var(--radius-app)]" />
         <Skeleton className="h-8 w-48" />
         <div className="flex flex-col gap-2">

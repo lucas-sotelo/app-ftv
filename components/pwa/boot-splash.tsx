@@ -64,7 +64,7 @@ export function BootSplash() {
       className="bg-background fixed inset-0 z-[100] flex flex-col items-center justify-center gap-5 transition-opacity"
       style={{ opacity: phase === "fading" ? 0 : 1, transitionDuration: `${FADE_MS}ms` }}
     >
-      <BallSpinner size={56} />
+      <BallSpinner />
       <p
         key={phraseIndex}
         aria-live="polite"
