@@ -2,7 +2,6 @@ import { HeadToHeadList, type HeadToHeadEntry } from "@/components/stats/head-to
 import { RankingTable, type RankingEntry } from "@/components/stats/ranking-table";
 import { BallSpinner } from "@/components/ui/ball-spinner";
 import { EmptyState } from "@/components/ui/empty-state";
-import { ListSkeleton } from "@/components/ui/skeleton";
 import { BarChart3 } from "lucide-react";
 import { fetchLatestBadgesByPlayer } from "@/lib/data/badges";
 import {
@@ -54,26 +53,20 @@ export function EmptyRanking() {
   );
 }
 
-export function RankingTabSkeleton() {
+function TabLoadingBall() {
   return (
-    <div className="flex flex-col gap-3">
-      <div className="flex justify-center py-2">
-        <BallSpinner size={40} />
-      </div>
-      <ListSkeleton rows={8} />
+    <div className="flex items-center justify-center py-16">
+      <BallSpinner size={72} />
     </div>
   );
 }
 
+export function RankingTabSkeleton() {
+  return <TabLoadingBall />;
+}
+
 export function HeadToHeadTabSkeleton() {
-  return (
-    <div className="flex flex-col gap-3">
-      <div className="flex justify-center py-2">
-        <BallSpinner size={40} />
-      </div>
-      <ListSkeleton rows={6} />
-    </div>
-  );
+  return <TabLoadingBall />;
 }
 
 export async function IndividualTabContent({
