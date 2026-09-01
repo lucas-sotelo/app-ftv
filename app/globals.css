@@ -223,3 +223,34 @@
     animation: none;
   }
 }
+
+/*
+ * Indicador de navegação pendente (LinkPendingBall). Some por padrão e só
+ * aparece depois de 150ms ainda pendente — evita o flash em transições
+ * rápidas (mesma técnica da doc do useLinkStatus: "Gracefully handling fast
+ * navigation").
+ */
+.link-pending-ball {
+  opacity: 0;
+  visibility: hidden;
+}
+
+.link-pending-ball.is-pending {
+  visibility: visible;
+  animation:
+    app-spin 1.6s linear infinite,
+    link-pending-fade-in 150ms ease 150ms forwards;
+}
+
+@keyframes link-pending-fade-in {
+  to {
+    opacity: 1;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .link-pending-ball.is-pending {
+    animation: none;
+    opacity: 1;
+  }
+}

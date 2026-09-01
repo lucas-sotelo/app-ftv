@@ -4,6 +4,7 @@ import { BarChart3, Flame, Home, ListOrdered, Menu, User, Users } from "lucide-r
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useState } from "react";
+import { LinkPendingBall } from "@/components/ui/link-pending-ball";
 import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetTrigger } from "@/components/ui/sheet";
 import { cn } from "@/lib/utils";
 
@@ -49,7 +50,10 @@ export function BottomNav({ slug }: { slug: string }) {
                   active ? "text-primary" : "text-muted-foreground",
                 )}
               >
-                <Icon className="size-5" aria-hidden />
+                <span className="relative inline-flex">
+                  <Icon className="size-5" aria-hidden />
+                  <LinkPendingBall size={10} className="absolute -top-1.5 -right-1.5" />
+                </span>
                 <span>{item.label}</span>
               </Link>
             </li>
@@ -88,7 +92,10 @@ export function BottomNav({ slug }: { slug: string }) {
                           active ? "bg-primary/10 text-primary" : "hover:bg-muted",
                         )}
                       >
-                        <Icon className="size-5" aria-hidden />
+                        <span className="relative inline-flex">
+                          <Icon className="size-5" aria-hidden />
+                          <LinkPendingBall size={10} className="absolute -top-1.5 -right-1.5" />
+                        </span>
                         {item.label}
                       </Link>
                     </li>

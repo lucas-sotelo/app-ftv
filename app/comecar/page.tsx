@@ -7,6 +7,7 @@ import { HeroBanner } from "@/components/home/hero-banner";
 import { OnboardingTour } from "@/components/help/onboarding-tour";
 import { PlayerAvatar } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
+import { LinkPendingBall } from "@/components/ui/link-pending-ball";
 import { fetchGlobalUserStats, fetchMyRankingPositions, listUserGroups } from "@/lib/data/groups";
 import { ROLE_LABELS } from "@/lib/permissions";
 import { createClient } from "@/lib/supabase/server";
@@ -126,7 +127,10 @@ export default async function HomePage({
                       <Badge variant={role === "owner" ? "primary" : "default"}>
                         {ROLE_LABELS[role]}
                       </Badge>
-                      <ChevronRight className="text-muted-foreground size-4 shrink-0" aria-hidden />
+                      <span className="relative inline-flex shrink-0">
+                        <ChevronRight className="text-muted-foreground size-4" aria-hidden />
+                        <LinkPendingBall size={16} className="absolute inset-0 -m-1" />
+                      </span>
                     </Link>
                   </li>
                 );

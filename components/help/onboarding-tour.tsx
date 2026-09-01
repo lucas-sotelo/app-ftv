@@ -1,6 +1,6 @@
 "use client";
 
-import { ClipboardList, HelpCircle, Link2, Trophy, Users } from "lucide-react";
+import { ClipboardList, HelpCircle, KeyRound, Trophy, Users } from "lucide-react";
 import * as React from "react";
 import { Button } from "@/components/ui/button";
 import { Sheet, SheetContent, SheetHeader, SheetTitle } from "@/components/ui/sheet";
@@ -13,13 +13,13 @@ const STEPS = [
     icon: Users,
     title: "Crie ou entre em um grupo",
     description:
-      "Cada grupo de futevôlei ou beach tênis tem seu próprio ranking e histórico. Crie o seu ou peça pra alguém te mandar o link ou código de convite.",
+      "Cada grupo de futevôlei ou beach tênis tem seu próprio ranking e histórico. Crie o seu ou peça pra alguém te passar o código de convite.",
   },
   {
-    icon: Link2,
+    icon: KeyRound,
     title: "Convide a galera",
     description:
-      "Como admin, gere um link ou código em Grupo → Convites e manda no WhatsApp. Quem entrar pelo link já cai direto no grupo certo.",
+      "Como admin, gere um código em Grupo → Convites e manda no WhatsApp. A pessoa entra em \"Entrar com código\" e digita o que você mandou.",
   },
   {
     icon: ClipboardList,
