@@ -1,5 +1,5 @@
 import { expect, test, type Page } from "@playwright/test";
-import { addPlayer, createGroup, pickPlayer, signUp, uniqueEmail } from "./helpers";
+import { addPlayer, createGroup, joinGroupByCode, pickPlayer, signUp, uniqueEmail } from "./helpers";
 
 /**
  * Jornada completa: da criação da conta até um membro comum tentando (e não
@@ -146,9 +146,7 @@ test.describe("fluxo principal", () => {
     await signUp(page, "Membro Convidado", guestEmail);
     await page.waitForURL(/\/(comecar)?$/);
 
-    await page.goto("/comecar");
-    await page.getByLabel("Código do convite").fill(inviteCode);
-    await page.getByRole("button", { name: "Entrar no grupo" }).click();
+    await joinGroupByCode(page, inviteCode);
     await page.waitForURL(`**${slug}`);
 
     // Lê partidas e estatísticas normalmente.

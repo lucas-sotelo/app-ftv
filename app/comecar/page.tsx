@@ -4,6 +4,7 @@ import Link from "next/link";
 import { redirect } from "next/navigation";
 import { GlobalStatsOverview } from "@/components/home/global-stats-overview";
 import { HeroBanner } from "@/components/home/hero-banner";
+import { OnboardingTour } from "@/components/help/onboarding-tour";
 import { PlayerAvatar } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
 import { fetchGlobalUserStats, fetchMyRankingPositions, listUserGroups } from "@/lib/data/groups";
@@ -67,7 +68,13 @@ export default async function HomePage({
         ) : null}
 
         <section className="flex flex-col gap-3">
-          <h2 className="text-lg font-bold">Seus grupos</h2>
+          <div className="flex items-center justify-between">
+            <h2 className="text-lg font-bold">Seus grupos</h2>
+            {/* Sem grupo ainda, mas não por cima do JoinGroupDialog: quem
+            chega por link de convite já tem o próprio dialog abrindo
+            sozinho, e os dois juntos travariam a tela. */}
+            <OnboardingTour autoShow={uniqueGroups.length === 0 && !convite} />
+          </div>
 
           {uniqueGroups.length === 0 ? (
             <p className="text-muted-foreground text-sm">

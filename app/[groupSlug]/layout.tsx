@@ -3,6 +3,7 @@ import { redirect } from "next/navigation";
 import Link from "next/link";
 import type { ReactNode } from "react";
 import { GroupSwitcher } from "@/components/groups/group-switcher";
+import { OnboardingTour } from "@/components/help/onboarding-tour";
 import { BottomNav } from "@/components/layout/bottom-nav";
 import { ThemeToggle } from "@/components/layout/theme-toggle";
 import { Button } from "@/components/ui/button";
@@ -66,6 +67,7 @@ export default async function GroupLayout({
                 <Home aria-hidden />
               </Link>
             </Button>
+            <OnboardingTour />
             <ThemeToggle />
           </div>
         </div>
