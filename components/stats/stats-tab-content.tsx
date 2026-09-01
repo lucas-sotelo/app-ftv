@@ -1,5 +1,6 @@
 import { HeadToHeadList, type HeadToHeadEntry } from "@/components/stats/head-to-head-list";
 import { RankingTable, type RankingEntry } from "@/components/stats/ranking-table";
+import { BallSpinner } from "@/components/ui/ball-spinner";
 import { EmptyState } from "@/components/ui/empty-state";
 import { ListSkeleton } from "@/components/ui/skeleton";
 import { BarChart3 } from "lucide-react";
@@ -54,11 +55,25 @@ export function EmptyRanking() {
 }
 
 export function RankingTabSkeleton() {
-  return <ListSkeleton rows={8} />;
+  return (
+    <div className="flex flex-col gap-3">
+      <div className="flex justify-center py-2">
+        <BallSpinner size={40} />
+      </div>
+      <ListSkeleton rows={8} />
+    </div>
+  );
 }
 
 export function HeadToHeadTabSkeleton() {
-  return <ListSkeleton rows={6} />;
+  return (
+    <div className="flex flex-col gap-3">
+      <div className="flex justify-center py-2">
+        <BallSpinner size={40} />
+      </div>
+      <ListSkeleton rows={6} />
+    </div>
+  );
 }
 
 export async function IndividualTabContent({

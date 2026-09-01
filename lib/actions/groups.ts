@@ -155,6 +155,19 @@ export async function setMemberRoleAction(
   }
 }
 
+export async function deleteGroupAction(groupId: string): Promise<ActionResult> {
+  try {
+    const supabase = await createClient();
+    const { error } = await supabase.rpc("delete_group", { p_group_id: groupId });
+    if (error) return failure(error);
+
+    revalidatePath("/", "layout");
+    return success();
+  } catch (error) {
+    return failure(error);
+  }
+}
+
 export async function removeMemberAction(
   groupId: string,
   slug: string,

@@ -545,6 +545,10 @@ export interface Database {
         Args: { p_invitation_id: string };
         Returns: undefined;
       };
+      delete_group: {
+        Args: { p_group_id: string };
+        Returns: undefined;
+      };
       get_or_create_session: {
         Args: {
           p_group_id: string;

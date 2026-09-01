@@ -6,13 +6,11 @@ import { BallSpinner } from "@/components/ui/ball-spinner";
 const PHRASES = [
   "Ajustando as marcações da quadra…",
   "Conferindo a altura da rede…",
-  "Esquentando a areia…",
   "Enchendo a bola de ar…",
   "Alongando pro primeiro saque…",
-  "Afiando o levantamento…",
 ];
 
-const PHRASE_INTERVAL_MS = 500;
+const PHRASE_INTERVAL_MS = 1000;
 const FADE_MS = 300;
 const SESSION_KEY = "ftv-booted";
 

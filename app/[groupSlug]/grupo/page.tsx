@@ -2,6 +2,7 @@ import { ClipboardList, UsersRound } from "lucide-react";
 import type { Metadata } from "next";
 import Link from "next/link";
 import { notFound } from "next/navigation";
+import { DeleteGroupSection } from "@/components/groups/delete-group-section";
 import { GroupSettingsForm } from "@/components/groups/group-settings-form";
 import { InvitationsPanel } from "@/components/groups/invitations-panel";
 import { MembersList } from "@/components/groups/members-list";
@@ -101,6 +102,10 @@ export default async function GroupPage({ params }: { params: Promise<{ groupSlu
               />
             </CardContent>
           </Card>
+
+          {can.deleteGroup(role) ? (
+            <DeleteGroupSection groupId={group.id} groupName={group.name} />
+          ) : null}
         </>
       ) : (
         <p className="text-muted-foreground text-sm">
