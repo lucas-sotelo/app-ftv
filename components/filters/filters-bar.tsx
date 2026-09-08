@@ -33,12 +33,15 @@ export function FiltersBar({
   sessions,
   showMinGames = false,
   showSearch = false,
+  showPeriod = true,
 }: {
   filters: StatsFilters;
   players: FilterOption[];
   sessions: FilterOption[];
   showMinGames?: boolean;
   showSearch?: boolean;
+  /** A aba Individual controla o período pelas sub-abas Mensal/Geral, não por aqui. */
+  showPeriod?: boolean;
 }) {
   const router = useRouter();
   const pathname = usePathname();
@@ -110,26 +113,28 @@ export function FiltersBar({
           id="filtros-avancados"
           className="bg-card flex flex-col gap-3 rounded-[var(--radius-app)] border p-3"
         >
-          <div className="flex flex-col gap-1.5">
-            <Label htmlFor="filtro-periodo">Período</Label>
-            <Select
-              value={filters.period}
-              onValueChange={(value) => update({ periodo: value === "all" ? null : value })}
-            >
-              <SelectTrigger id="filtro-periodo">
-                <SelectValue />
-              </SelectTrigger>
-              <SelectContent>
-                {PERIOD_PRESETS.map((preset) => (
-                  <SelectItem key={preset} value={preset}>
-                    {PERIOD_LABELS[preset]}
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
-          </div>
+          {showPeriod ? (
+            <div className="flex flex-col gap-1.5">
+              <Label htmlFor="filtro-periodo">Período</Label>
+              <Select
+                value={filters.period}
+                onValueChange={(value) => update({ periodo: value === "all" ? null : value })}
+              >
+                <SelectTrigger id="filtro-periodo">
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  {PERIOD_PRESETS.map((preset) => (
+                    <SelectItem key={preset} value={preset}>
+                      {PERIOD_LABELS[preset]}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+          ) : null}
 
-          {filters.period === "day" ? (
+          {showPeriod && filters.period === "day" ? (
             <div className="flex flex-col gap-1.5">
               <Label htmlFor="filtro-dia">Dia</Label>
               <Input
@@ -141,7 +146,7 @@ export function FiltersBar({
             </div>
           ) : null}
 
-          {filters.period === "custom" ? (
+          {showPeriod && filters.period === "custom" ? (
             <div className="grid grid-cols-2 gap-2">
               <div className="flex flex-col gap-1.5">
                 <Label htmlFor="filtro-de">De</Label>

@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import { Suspense } from "react";
 import { notFound } from "next/navigation";
 import { FiltersBar } from "@/components/filters/filters-bar";
+import { MonthSelect } from "@/components/stats/month-select";
 import {
   ConfrontosDuplasTabContent,
   ConfrontosJogadoresTabContent,
@@ -14,17 +15,21 @@ import { StatsTabs } from "@/components/stats/stats-tabs";
 import { getGroupContext } from "@/lib/data/groups";
 import { listSessions } from "@/lib/data/matches";
 import { listPlayers } from "@/lib/data/players";
+import { listStatsMonths } from "@/lib/data/stats";
 import {
   effectiveMinGames,
   parseConfrontoTab,
   parseStatsFilters,
+  parseStatsMonth,
   parseStatsTab,
+  parseStatsView,
   resolveFilterPeriod,
   type SearchParamsInput,
 } from "@/lib/stats/filters";
 import { parseSort } from "@/lib/stats/sort";
 import { createClient } from "@/lib/supabase/server";
 import { formatPlainDate } from "@/lib/utils/format";
+import { currentYearMonth, resolveMonthPeriod } from "@/lib/utils/period";
 
 export const metadata: Metadata = { title: "Estatísticas" };
 export const dynamic = "force-dynamic";
@@ -38,6 +43,11 @@ const TABS = [
 const SUB_TABS = [
   { value: "jogadores", label: "Jogador x jogador" },
   { value: "duplas", label: "Dupla x dupla" },
+];
+
+const VIEW_TABS = [
+  { value: "mensal", label: "Mensal" },
+  { value: "geral", label: "Geral" },
 ];
 
 export default async function StatsPage({
@@ -61,7 +71,17 @@ export default async function StatsPage({
 
   const { group } = context;
   const basePath = `/${groupSlug}/estatisticas`;
-  const period = resolveFilterPeriod(filters, group.timezone);
+
+  // Na aba Individual o período não vem do filtro genérico: as sub-abas
+  // Mensal/Geral mandam (mês selecionado vs. todo o histórico do grupo).
+  const statsView = parseStatsView(rawSearchParams);
+  const statsMonth = parseStatsMonth(rawSearchParams, group.timezone);
+  const individualPeriod =
+    statsView === "geral"
+      ? { preset: "all" as const, from: null, to: null }
+      : resolveMonthPeriod(statsMonth, group.timezone);
+  const period =
+    tab === "individual" ? individualPeriod : resolveFilterPeriod(filters, group.timezone);
   const pairMinGames = effectiveMinGames(filters);
 
   const query = {
@@ -73,10 +93,17 @@ export default async function StatsPage({
   // Leves (lookups simples, sem agregação) — ficam fora do <Suspense> para
   // que o cabeçalho, as abas e os filtros sempre respondam na hora, mesmo
   // enquanto a aba pesada (RPC de estatística) ainda está carregando.
-  const [players, sessions] = await Promise.all([
+  const [players, sessions, statsMonths] = await Promise.all([
     listPlayers(supabase, group.id),
     listSessions(supabase, group.id),
+    tab === "individual" ? listStatsMonths(supabase, group.id) : Promise.resolve<string[]>([]),
   ]);
+
+  // Garante que o mês vigente e o mês selecionado na URL sempre apareçam no
+  // seletor, mesmo que ainda não tenham partida registrada.
+  const monthOptions = Array.from(
+    new Set([`${statsMonth}-01`, `${currentYearMonth(group.timezone)}-01`, ...statsMonths]),
+  ).sort((a, b) => (a < b ? 1 : -1));
 
   const filterProps = {
     filters,
@@ -106,7 +133,12 @@ export default async function StatsPage({
         defaultValue="individual"
         label="Seções de estatística"
       />
-      <FiltersBar {...filterProps} showSearch showMinGames={tab === "duplas"} />
+      <FiltersBar
+        {...filterProps}
+        showSearch
+        showMinGames={tab === "duplas"}
+        showPeriod={tab !== "individual"}
+      />
       {tab === "individual" && group.min_attendance_percent > 0 ? (
         <p className="text-muted-foreground text-xs">
           Ranking oficial exige pelo menos {group.min_attendance_percent}% de presença. Quem não
@@ -125,6 +157,24 @@ export default async function StatsPage({
     return (
       <div className="flex flex-col gap-4">
         {header}
+        <div className="flex flex-col gap-2 sm:flex-row sm:items-center">
+          <div className="sm:max-w-xs">
+            <StatsTabs
+              tabs={VIEW_TABS}
+              active={statsView}
+              basePath={basePath}
+              searchParams={rawSearchParams}
+              paramName="visao"
+              defaultValue="mensal"
+              label="Mensal ou geral"
+            />
+          </div>
+          {statsView === "mensal" ? (
+            <div className="sm:w-56 sm:shrink-0">
+              <MonthSelect value={statsMonth} months={monthOptions} />
+            </div>
+          ) : null}
+        </div>
         <Suspense fallback={<RankingTabSkeleton />}>
           <IndividualTabContent {...tabBaseProps} group={group} players={players} />
         </Suspense>

@@ -114,3 +114,18 @@ export async function fetchPlayerMonthlyStats(
   if (error) throw error;
   return data ?? [];
 }
+
+/**
+ * Meses ("YYYY-MM-DD", sempre dia 01) que tiveram partida no grupo, mais
+ * recente primeiro — só para popular o seletor de mês da aba Individual.
+ * Nenhuma estatística é lida ou calculada aqui, apenas os buckets de mês.
+ */
+export async function listStatsMonths(supabase: Client, groupId: string): Promise<string[]> {
+  const { data, error } = await supabase
+    .from("v_player_monthly_stats")
+    .select("month_start")
+    .eq("group_id", groupId)
+    .order("month_start", { ascending: false });
+  if (error) throw error;
+  return [...new Set((data ?? []).map((row) => row.month_start))];
+}

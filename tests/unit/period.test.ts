@@ -4,13 +4,20 @@ import {
   hasActiveFilters,
   parseConfrontoTab,
   parseStatsFilters,
+  parseStatsMonth,
   parseStatsTab,
+  parseStatsView,
   statsFiltersToParams,
 } from "@/lib/stats/filters";
 import { applySort, nextSortHref, parseSort } from "@/lib/stats/sort";
 import { formatDate, formatPercent, formatPlainDate, formatGames } from "@/lib/utils/format";
 import { composePlayedAt, todayInZone } from "@/lib/utils/played-at";
-import { resolvePeriod } from "@/lib/utils/period";
+import {
+  currentYearMonth,
+  isYearMonth,
+  resolveMonthPeriod,
+  resolvePeriod,
+} from "@/lib/utils/period";
 
 const TZ = "America/Sao_Paulo";
 
@@ -45,6 +52,26 @@ describe("períodos com fuso do grupo", () => {
     const lateGame = new Date("2026-07-06T01:00:00.000Z"); // 22h de 05/07 em SP
     expect(lateGame.getTime()).toBeGreaterThanOrEqual(period.from!.getTime());
     expect(lateGame.getTime()).toBeLessThan(period.to!.getTime());
+  });
+
+  it("resolve um mês específico (não o atual) no fuso do grupo", () => {
+    const period = resolveMonthPeriod("2026-02", TZ);
+    // 1º/02/2026 00:00 em São Paulo (UTC-3) = 03:00 UTC.
+    expect(period.from?.toISOString()).toBe("2026-02-01T03:00:00.000Z");
+    expect(period.to?.toISOString()).toBe("2026-03-01T03:00:00.000Z");
+  });
+
+  it("reconhece o formato YYYY-MM e rejeita o resto", () => {
+    expect(isYearMonth("2026-02")).toBe(true);
+    expect(isYearMonth("2026-2")).toBe(false);
+    expect(isYearMonth("")).toBe(false);
+    expect(isYearMonth(null)).toBe(false);
+  });
+
+  it("mês vigente respeita o fuso do grupo, não o UTC", () => {
+    // 00h30 de 01/02 em UTC ainda é 31/01 às 21h30 em São Paulo (UTC-3).
+    expect(currentYearMonth(TZ, new Date("2026-02-01T00:30:00.000Z"))).toBe("2026-01");
+    expect(currentYearMonth(TZ, new Date("2026-02-01T04:00:00.000Z"))).toBe("2026-02");
   });
 });
 
@@ -125,6 +152,18 @@ describe("filtros na URL", () => {
   it("detecta filtros ativos", () => {
     expect(hasActiveFilters(parseStatsFilters({}))).toBe(false);
     expect(hasActiveFilters(parseStatsFilters({ periodo: "month" }))).toBe(true);
+  });
+
+  it("a visão Individual cai em Mensal por padrão", () => {
+    expect(parseStatsView({})).toBe("mensal");
+    expect(parseStatsView({ visao: "geral" })).toBe("geral");
+    expect(parseStatsView({ visao: "inexistente" })).toBe("mensal");
+  });
+
+  it("o mês da visão Mensal cai no mês vigente do grupo quando ausente/inválido", () => {
+    expect(parseStatsMonth({ mes: "2026-02" }, TZ)).toBe("2026-02");
+    expect(parseStatsMonth({ mes: "não-é-mês" }, TZ)).toBe(currentYearMonth(TZ));
+    expect(parseStatsMonth({}, TZ)).toBe(currentYearMonth(TZ));
   });
 });
 

@@ -1,5 +1,7 @@
 import {
+  currentYearMonth,
   isPeriodPreset,
+  isYearMonth,
   resolvePeriod,
   type PeriodPreset,
   type ResolvedPeriod,
@@ -27,6 +29,10 @@ export type StatsTab = (typeof STATS_TABS)[number];
 
 export const CONFRONTO_TABS = ["jogadores", "duplas"] as const;
 export type ConfrontoTab = (typeof CONFRONTO_TABS)[number];
+
+/** Sub-visão da aba Individual: mês vigente (com histórico) ou grupo inteiro. */
+export const STATS_VIEWS = ["mensal", "geral"] as const;
+export type StatsView = (typeof STATS_VIEWS)[number];
 
 export type SearchParamsInput = Record<string, string | string[] | undefined>;
 
@@ -75,6 +81,17 @@ export function parseConfrontoTab(params: SearchParamsInput): ConfrontoTab {
   return (CONFRONTO_TABS as readonly string[]).includes(value ?? "")
     ? (value as ConfrontoTab)
     : "jogadores";
+}
+
+export function parseStatsView(params: SearchParamsInput): StatsView {
+  const value = single(params.visao);
+  return (STATS_VIEWS as readonly string[]).includes(value ?? "") ? (value as StatsView) : "mensal";
+}
+
+/** Mês selecionado na visão Mensal ("YYYY-MM"); padrão: mês vigente no fuso do grupo. */
+export function parseStatsMonth(params: SearchParamsInput, timeZone: string): string {
+  const value = single(params.mes);
+  return isYearMonth(value) ? value : currentYearMonth(timeZone);
 }
 
 /** Serializa apenas o que difere do padrão — URLs curtas e legíveis. */

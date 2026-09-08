@@ -30,6 +30,10 @@ export function isPeriodPreset(value: string | null | undefined): value is Perio
  * no fuso do grupo. Semiaberto evita o clássico bug de perder ou duplicar as
  * partidas do último dia.
  */
+function asUtc(value: TZDate | Date): Date {
+  return new Date(value.getTime());
+}
+
 export function resolvePeriod(
   preset: PeriodPreset,
   options: {
@@ -41,8 +45,6 @@ export function resolvePeriod(
 ): ResolvedPeriod {
   const timeZone = options.timeZone ?? DEFAULT_TIMEZONE;
   const now = new TZDate(options.now ?? new Date(), timeZone);
-
-  const asUtc = (value: TZDate | Date): Date => new Date(value.getTime());
 
   switch (preset) {
     case "year":
@@ -77,6 +79,26 @@ export function resolvePeriod(
 function plainDateStart(isoDate: string, timeZone: string): TZDate {
   const [year, month, day] = isoDate.split("-").map(Number);
   return startOfDay(new TZDate(year, (month ?? 1) - 1, day ?? 1, timeZone));
+}
+
+const YEAR_MONTH = /^\d{4}-\d{2}$/;
+
+export function isYearMonth(value: string | null | undefined): value is string {
+  return !!value && YEAR_MONTH.test(value);
+}
+
+/** "2026-09" no fuso do grupo -> mês civil atual, no formato aceito por resolveMonthPeriod. */
+export function currentYearMonth(timeZone: string, now: Date = new Date()): string {
+  const zoned = new TZDate(now, timeZone);
+  return `${zoned.getFullYear()}-${String(zoned.getMonth() + 1).padStart(2, "0")}`;
+}
+
+/** Resolve um mês civil específico ("YYYY-MM") para [from, to) em UTC, no fuso do grupo. */
+export function resolveMonthPeriod(yearMonth: string, timeZone: string): ResolvedPeriod {
+  const [year, month] = yearMonth.split("-").map(Number);
+  const start = startOfMonth(new TZDate(year, month - 1, 1, timeZone));
+  const next = startOfMonth(new TZDate(year, month, 1, timeZone));
+  return { preset: "month", from: asUtc(start), to: asUtc(next) };
 }
 
 /** Serializa para os parâmetros das RPCs (timestamptz ISO ou null). */
