@@ -3,6 +3,7 @@ import type {
   DailyLanternRow,
   MassacreRow,
   PairUnderdogRow,
+  PlayerCurrentGameStreakRow,
   PlayerStreakRow,
   PlayerSunNightTotalsRow,
 } from "@/lib/supabase/database.types";
@@ -51,6 +52,22 @@ export async function fetchPlayerStreaks(
 ): Promise<PlayerStreakRow[]> {
   const { data, error } = await supabase
     .from("v_player_streaks")
+    .select("*")
+    .eq("group_id", groupId);
+  if (error) throw error;
+  return data ?? [];
+}
+
+/**
+ * Sequência em andamento contada em partidas (não em dias — isso é
+ * v_player_sun_night_totals) — base do card "X jogos sem perder".
+ */
+export async function fetchPlayerCurrentGameStreaks(
+  supabase: Client,
+  groupId: string,
+): Promise<PlayerCurrentGameStreakRow[]> {
+  const { data, error } = await supabase
+    .from("v_player_current_game_streak")
     .select("*")
     .eq("group_id", groupId);
   if (error) throw error;

@@ -437,6 +437,18 @@ export interface Database {
         };
         Relationships: [];
       };
+      v_player_current_game_streak: {
+        Row: {
+          group_id: string;
+          player_id: string;
+          display_name: string;
+          avatar_url: string | null;
+          streak_type: "win" | "loss";
+          streak_length: number;
+          streak_end_at: string;
+        };
+        Relationships: [];
+      };
       v_pair_underdogs: {
         Row: {
           match_id: string;
@@ -775,6 +787,7 @@ export type GlobalUserStatsRow = FnReturns<"get_global_user_stats">[number];
 export type DailyKingRow = Views<"v_daily_kings">;
 export type DailyLanternRow = Views<"v_daily_lanterns">;
 export type PlayerStreakRow = Views<"v_player_streaks">;
+export type PlayerCurrentGameStreakRow = Views<"v_player_current_game_streak">;
 export type PairUnderdogRow = Views<"v_pair_underdogs">;
 export type MassacreRow = Views<"v_biggest_massacres">;
 export type IndividualUnderdogRow = Views<"v_individual_underdogs">;

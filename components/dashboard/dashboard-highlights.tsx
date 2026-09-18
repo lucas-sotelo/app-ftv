@@ -18,7 +18,7 @@ import { createClient, getCurrentUser } from "@/lib/supabase/server";
 import { formatPlainDate, playerLabel } from "@/lib/utils/format";
 
 /**
- * Nota de corte da dupla nos Destaques: fixo em 10% dos jogos do grupo,
+ * Nota de corte da dupla nos Destaques: fixo em 5% dos jogos do grupo,
  * independente do group.min_attendance_percent (esse é calibrado para
  * presença INDIVIDUAL — um jogador comum aparece em boa parte das rodadas.
  * Uma dupla específica, não: cada partida se reparte entre várias
@@ -26,8 +26,10 @@ import { formatPlainDate, playerLabel } from "@/lib/utils/format";
  * naturalmente muito menor. Reusar o mesmo corte do individual (ex.: 25%)
  * deixava só a dupla com mais jogos elegível, mesmo com win rate pior —
  * exatamente o bug reportado ("Melhor dupla" saindo pelo volume de jogos).
+ * Com o volume de jogos do grupo crescendo, 10% também passou a distorcer
+ * (poucas duplas acumulam jogos suficientes), daí o corte para 5%.
  */
-const PAIR_HIGHLIGHT_MIN_ATTENDANCE_PERCENT = 10;
+const PAIR_HIGHLIGHT_MIN_ATTENDANCE_PERCENT = 5;
 
 /**
  * Bloco pesado do dashboard (resumo pessoal, tiles e destaques): isolado num

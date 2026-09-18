@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import { notFound } from "next/navigation";
+import { CurrentStreaks } from "@/components/resenha/current-streaks";
 import { DailyKings } from "@/components/resenha/daily-kings";
 import { Massacres } from "@/components/resenha/massacres";
 import { Streaks } from "@/components/resenha/streaks";
@@ -10,6 +11,7 @@ import {
   fetchDailyKings,
   fetchDailyLanterns,
   fetchPairUnderdogs,
+  fetchPlayerCurrentGameStreaks,
   fetchPlayerStreaks,
 } from "@/lib/data/resenha";
 import { createClient } from "@/lib/supabase/server";
@@ -30,10 +32,11 @@ export default async function ResenhaPage({
 
   const { group } = context;
 
-  const [kings, lanterns, streaks, underdogs, massacres] = await Promise.all([
+  const [kings, lanterns, streaks, currentStreaks, underdogs, massacres] = await Promise.all([
     fetchDailyKings(supabase, group.id),
     fetchDailyLanterns(supabase, group.id),
     fetchPlayerStreaks(supabase, group.id),
+    fetchPlayerCurrentGameStreaks(supabase, group.id),
     fetchPairUnderdogs(supabase, group.id),
     fetchBiggestMassacres(supabase, group.id),
   ]);
@@ -41,6 +44,7 @@ export default async function ResenhaPage({
   return (
     <div className="flex flex-col gap-4">
       <h1 className="text-xl font-bold">Resenha</h1>
+      <CurrentStreaks streaks={currentStreaks} />
       <DailyKings kings={kings} lanterns={lanterns} />
       <Streaks streaks={streaks} />
       <Underdogs underdogs={underdogs} timezone={group.timezone} />
