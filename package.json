@@ -19,8 +19,8 @@
     "test:e2e:install": "playwright install --with-deps chromium",
     "import:legacy": "tsx scripts/import-legacy-data.ts",
     "verify:legacy": "tsx scripts/verify-legacy-dataset.ts",
-    "db:reset": "supabase db reset",
-    "db:push": "supabase db push",
+    "db:reset": "npx supabase db reset",
+    "db:push": "npx supabase db push",
     "icons:generate": "node scripts/generate-icons.mjs"
   },
   "dependencies": {
