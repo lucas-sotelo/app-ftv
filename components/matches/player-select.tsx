@@ -44,9 +44,13 @@ export function PlayerSelect({
   const selected = players.find((p) => p.id === value);
 
   // Um jogador desativado que já estava na partida continua listado, senão a
-  // edição de uma partida antiga perderia a escalação.
+  // edição de uma partida antiga perderia a escalação. Ordem alfabética (não
+  // sort_order) para achar qualquer jogador rápido numa lista longa.
   const options = React.useMemo(
-    () => players.filter((p) => p.active || p.id === value),
+    () =>
+      players
+        .filter((p) => p.active || p.id === value)
+        .sort((a, b) => a.display_name.localeCompare(b.display_name, "pt-BR")),
     [players, value],
   );
 
